@@ -19,14 +19,28 @@
 #' @param upper_bound numeric value representing minimum count considered safe.
 #' Default set to `Inf`
 #' @param ... parameters passed to children functions
-#' @inheritParams GaussSuppressionFromData 
+#' @inheritParams GaussSuppressionFromData
+#'
+#' @param identifying A data frame containing selected rows from `crossTable`.
+#' The reference is to a `crossTable` data frame, possibly extended after applying
+#' `mc_hierarchies`. Membership in the cells represented by these rows is regarded
+#' as information that an intruder may already know. Alternatively, the parameter
+#' can be specified as a function that generates this data frame. This works
+#' similarly to supplied functions in `GaussSuppressionFromData()`. Note, however,
+#' that the function operates on versions of `freq`, `x`, and `crossTable` that
+#' reflect the use of `mc_hierarchies`, when applicable.
+#'
+#' @param disclosive A data frame or a generating function that provides selected
+#' rows from `crossTable`. If an intruder can infer membership in the cells
+#' represented by these rows, this is considered an unacceptable disclosure.
+#' This parameter works in a similar way to `identifying` described above.
 #'
 #' @return A data.frame containing the publishable data set, with a boolean
 #' variable `$suppressed` representing cell suppressions.
 #' @export
 #'
-#' @author Daniel P. Lupp
-
+#' @author Daniel P. Lupp and Øyvind Langsrud
+#'
 #' @examples
 #' # data
 #' data <- SSBtools::SSBtoolsData("mun_accidents")
@@ -63,6 +77,8 @@ SuppressKDisclosure <- function(data,
                                 formula = NULL,
                                 hierarchies = NULL,
                                 freqVar = NULL,
+                                identifying = NULL,
+                                disclosive = NULL,       
                                 ...,
                                 spec = PackageSpecs("kDisclosureSpec")) {
   additional_params <- list(...)
@@ -83,6 +99,8 @@ SuppressKDisclosure <- function(data,
     mc_hierarchies = mc_hierarchies,
     upper_bound = upper_bound,
     spec = spec,
+    identifying = identifying,
+    disclosive = disclosive, 
     ...
   )
 }
@@ -99,7 +117,7 @@ SuppressKDisclosure <- function(data,
 #' @return dgCMatrix corresponding to primary suppressed cells
 #' @export
 #'
-#' @author Daniel P. Lupp
+#' @author Daniel P. Lupp and Øyvind Langsrud
 KDisclosurePrimary <- function(data,
                                x,
                                crossTable,
@@ -107,7 +125,27 @@ KDisclosurePrimary <- function(data,
                                mc_hierarchies = NULL,
                                coalition = 1,
                                upper_bound = Inf,
+                               identifying = NULL,
+                               disclosive = NULL, 
                                ...) {
+  
+  
+  
+  mc_obj <- X_from_mc(
+    data = data,
+    x = x,
+    crossTable = crossTable,
+    mc_hierarchies = mc_hierarchies,
+    freqVar = freqVar,
+    coalition = coalition,
+    upper_bound = upper_bound,
+    returnNewCrossTable = TRUE,
+    ...
+  )
+  
+  x <- cbind(x, mc_obj$x)
+  crossTable <- rbind(crossTable, mc_obj$crossTable)
+  
   x <- cbind(
     x,
     X_from_mc(
@@ -121,10 +159,43 @@ KDisclosurePrimary <- function(data,
       ...
     )
   )
-  x <- x[,!SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
+  
   freq <- as.vector(crossprod(x, data[[freqVar]]))
+  
+  
+  if(is.function(identifying)) {
+    identifying <- identifying(..., freq = freq, x = x, crossTable = crossTable)
+  }
+  if(is.function(disclosive)) {
+    disclosive <- disclosive(..., freq = freq, x = x, crossTable = crossTable)
+  }
+  
+  if (!is.null(identifying) | !is.null(disclosive)) {
+    
+    if (!is.null(identifying)) {
+      ma <- SSBtools::Match(identifying, crossTable)
+      ma <- ma[!is.na(ma)]
+      y <- x[, ma]
+    } else {
+      y <- x
+    }
+    y <- y[, !SSBtools::DummyDuplicated(y, rnd = TRUE), drop = FALSE]
+    
+    
+    if (!is.null(disclosive)) {
+      ma <- SSBtools::Match(disclosive, crossTable)
+      ma <- ma[!is.na(ma)]
+      x <- x[, ma]
+    }
+    x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
+  } else {
+    x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
+    y <- x
+  }
+  
     FindDifferenceCells(
     x = x,
+    y = y,
     freq = freq,
     coalition = coalition,
     upper_bound = upper_bound,
