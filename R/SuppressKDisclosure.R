@@ -123,7 +123,7 @@ KDisclosurePrimary <- function(data,
   )
   x <- x[,!SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
   freq <- as.vector(crossprod(x, data[[freqVar]]))
-  FindDifferenceCells(
+    FindDifferenceCells(
     x = x,
     freq = freq,
     coalition = coalition,
@@ -132,35 +132,38 @@ KDisclosurePrimary <- function(data,
   )
 }
 
+
+
 FindDifferenceCells <- function(x,
-                                  freq,
-                                  coalition,
-                                  upper_bound = Inf,
-                                  crossTable) {
-  publ_x <- crossprod(x)
-  publ_x <-
-    As_TsparseMatrix(publ_x)
-  colSums_x <- colSums(x)
-  # row i is child of column j in r
-  r <-
-    colSums_x[publ_x@i + 1] == publ_x@x &
-    colSums_x[publ_x@j + 1] != publ_x@x
-  publ_x@x <- publ_x@x[r]
-  publ_x@j <- publ_x@j[r]
-  publ_x@i <- publ_x@i[r]
-  child_parent <- cbind(child = publ_x@i + 1,
-                        parent = publ_x@j + 1,
-                        diff = freq[publ_x@j + 1] - freq[publ_x@i + 1])
-  child_parent <- child_parent[freq[child_parent[, 2]] > 0 &
-                                 freq[child_parent[, 1]] > 0 &
-                                 freq[child_parent[, 1]] <= upper_bound, ]
-  disclosures <- child_parent[child_parent[, 3] <= coalition, , drop = FALSE]
-  if (nrow(disclosures))
-    primary_matrix <- As_TsparseMatrix(apply(disclosures,
-                                             1,
-                                             function(row)
-                                               x[, row[2]] - x[, row[1]]))
-  else
+                                y = x,
+                                freq,
+                                coalition,
+                                upper_bound = Inf,
+                                crossTable) {
+  xty <- As_TsparseMatrix(crossprod(x, y))
+  colSums_y_xty_j_1 <- colSums(y)[xty@j + 1]
+  # finds children in x and parents in y
+  r <- colSums(x)[xty@i + 1] == xty@x & 
+    colSums_y_xty_j_1     != xty@x & 
+    (colSums_y_xty_j_1 - xty@x) <= upper_bound
+  
+  if (!any(r)) {
     return(rep(FALSE, nrow(crossTable)))
-  primary_matrix
+  }
+  
+  child <- xty@i[r] + 1L
+  parent <- xty@j[r] + 1L
+  
+  disclosures <- 
+    freq[child] > 0  &
+    freq[parent] > 0  &
+    (freq[parent] - freq[child]) <= coalition
+  
+  if (!any(disclosures)) {
+    return(rep(FALSE, nrow(crossTable)))
+  }
+  
+  diff_matrix <- drop0(y[, parent[disclosures], drop = FALSE] - 
+                       x[, child[disclosures], drop = FALSE])
+  diff_matrix
 }
