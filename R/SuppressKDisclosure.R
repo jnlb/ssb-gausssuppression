@@ -1,6 +1,36 @@
 #' K-disclosure suppression
 #'
 #' A function for suppressing frequency tables using the k-disclosure method.
+#' 
+#' @details
+#' The `targeting` specification is a named list that may contain the following
+#' optional elements. References to `crossTable` below refer to a data frame
+#' that may be extended after applying `mc_hierarchies`.
+#'
+#' \describe{
+#'   \item{`identifying`}{A data frame containing selected rows from
+#'   `crossTable`. Membership in the cells represented by these rows is regarded
+#'   as information that an intruder may already know. If omitted, it defaults
+#'   to `crossTable`.}
+#'
+#'   \item{`disclosive`}{A data frame containing selected rows from
+#'   `crossTable`. If an intruder can infer membership in the cells represented
+#'   by these rows, this is considered an unacceptable disclosure, subject to
+#'   any further specification provided by `is_disclosive`. If omitted, it
+#'   defaults to `crossTable`.}
+#'
+#'   \item{`is_disclosive`}{A data frame with the same structure as
+#'   `disclosive`, but with logical variables. It indicates which codes in
+#'   `disclosive` are regarded as disclosive. When specified, disclosure is
+#'   assessed by which codes within a revealed cell are disclosed. If omitted,
+#'   it is equivalent to a data frame where all elements are `TRUE`.}
+#' }
+#'
+#' The argument `targeting` may also be a function that returns such a list.
+#' This works similarly to supplied functions in `GaussSuppressionFromData()`.
+#' Note, however, that the function operates on possibly extended versions of
+#' `freq`, `x`, and `crossTable` that reflect the use of `mc_hierarchies`, when
+#' applicable.
 #'
 #' @param data a data.frame representing the data set
 #' @param coalition numeric vector of length one, representing possible size of an
@@ -21,19 +51,8 @@
 #' @param ... parameters passed to children functions
 #' @inheritParams GaussSuppressionFromData
 #'
-#' @param identifying A data frame containing selected rows from `crossTable`.
-#' The reference is to a `crossTable` data frame, possibly extended after applying
-#' `mc_hierarchies`. Membership in the cells represented by these rows is regarded
-#' as information that an intruder may already know. Alternatively, the parameter
-#' can be specified as a function that generates this data frame. This works
-#' similarly to supplied functions in `GaussSuppressionFromData()`. Note, however,
-#' that the function operates on versions of `freq`, `x`, and `crossTable` that
-#' reflect the use of `mc_hierarchies`, when applicable.
-#'
-#' @param disclosive A data frame or a generating function that provides selected
-#' rows from `crossTable`. If an intruder can infer membership in the cells
-#' represented by these rows, this is considered an unacceptable disclosure.
-#' This parameter works in a similar way to `identifying` described above.
+#' @param targeting NULL, a list, or a function that returns a list specifying
+#' attribute disclosure scenarios. See Details.
 #'
 #' @return A data.frame containing the publishable data set, with a boolean
 #' variable `$suppressed` representing cell suppressions.
@@ -77,8 +96,7 @@ SuppressKDisclosure <- function(data,
                                 formula = NULL,
                                 hierarchies = NULL,
                                 freqVar = NULL,
-                                identifying = NULL,
-                                disclosive = NULL,       
+                                targeting = NULL,
                                 ...,
                                 spec = PackageSpecs("kDisclosureSpec")) {
   additional_params <- list(...)
@@ -99,8 +117,7 @@ SuppressKDisclosure <- function(data,
     mc_hierarchies = mc_hierarchies,
     upper_bound = upper_bound,
     spec = spec,
-    identifying = identifying,
-    disclosive = disclosive, 
+    targeting = targeting,
     ...
   )
 }
@@ -125,8 +142,7 @@ KDisclosurePrimary <- function(data,
                                mc_hierarchies = NULL,
                                coalition = 1,
                                upper_bound = Inf,
-                               identifying = NULL,
-                               disclosive = NULL, 
+                               targeting = NULL,
                                ...) {
   
   
@@ -162,13 +178,12 @@ KDisclosurePrimary <- function(data,
   
   freq <- as.vector(crossprod(x, data[[freqVar]]))
   
+  if(is.function(targeting)) {
+    targeting <- targeting(..., freq = freq, x = x, crossTable = crossTable)
+  }
   
-  if(is.function(identifying)) {
-    identifying <- identifying(..., freq = freq, x = x, crossTable = crossTable)
-  }
-  if(is.function(disclosive)) {
-    disclosive <- disclosive(..., freq = freq, x = x, crossTable = crossTable)
-  }
+  identifying <- targeting$identifying
+  disclosive  <- targeting$disclosive
   
   if (!is.null(identifying) | !is.null(disclosive)) {
     

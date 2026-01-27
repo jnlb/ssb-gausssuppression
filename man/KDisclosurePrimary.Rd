@@ -12,8 +12,7 @@ KDisclosurePrimary(
   mc_hierarchies = NULL,
   coalition = 1,
   upper_bound = Inf,
-  identifying = NULL,
-  disclosive = NULL,
+  targeting = NULL,
   ...
 )
 }
@@ -36,19 +35,8 @@ definition of k-disclosure.}
 \item{upper_bound}{numeric value representing minimum count considered safe.
 Default set to \code{Inf}}
 
-\item{identifying}{A data frame containing selected rows from \code{crossTable}.
-The reference is to a \code{crossTable} data frame, possibly extended after applying
-\code{mc_hierarchies}. Membership in the cells represented by these rows is regarded
-as information that an intruder may already know. Alternatively, the parameter
-can be specified as a function that generates this data frame. This works
-similarly to supplied functions in \code{GaussSuppressionFromData()}. Note, however,
-that the function operates on versions of \code{freq}, \code{x}, and \code{crossTable} that
-reflect the use of \code{mc_hierarchies}, when applicable.}
-
-\item{disclosive}{A data frame or a generating function that provides selected
-rows from \code{crossTable}. If an intruder can infer membership in the cells
-represented by these rows, this is considered an unacceptable disclosure.
-This parameter works in a similar way to \code{identifying} described above.}
+\item{targeting}{NULL, a list, or a function that returns a list specifying
+attribute disclosure scenarios. See Details.}
 
 \item{...}{parameters passed to children functions}
 }
