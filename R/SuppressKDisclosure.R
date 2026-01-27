@@ -176,6 +176,8 @@ KDisclosurePrimary <- function(data,
     )
   )
   
+  freq <- as.vector(crossprod(x, data[[freqVar]]))
+  
   if(is.function(targeting)) {
     targeting <- targeting(..., freq = freq, x = x, crossTable = crossTable)
   }
