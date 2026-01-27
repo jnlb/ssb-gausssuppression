@@ -176,8 +176,6 @@ KDisclosurePrimary <- function(data,
     )
   )
   
-  freq <- as.vector(crossprod(x, data[[freqVar]]))
-  
   if(is.function(targeting)) {
     targeting <- targeting(..., freq = freq, x = x, crossTable = crossTable)
   }
@@ -240,7 +238,8 @@ KDisclosurePrimary <- function(data,
   FindDifferenceCells(
     x = x,
     y = y,
-    freq = freq,
+    freq_x = as.vector(crossprod(x, data[[freqVar]])),
+    freq_y = as.vector(crossprod(y, data[[freqVar]])),
     coalition = coalition,
     upper_bound = upper_bound,
     crossTable = crossTable,
@@ -254,7 +253,8 @@ KDisclosurePrimary <- function(data,
 
 FindDifferenceCells <- function(x,
                                 y = x,
-                                freq,
+                                freq_x,
+                                freq_y = freq_x,
                                 coalition,
                                 upper_bound = Inf,
                                 crossTable, # used only for via nrow()
@@ -276,10 +276,12 @@ FindDifferenceCells <- function(x,
   child <- xty@i[r] + 1L
   parent <- xty@j[r] + 1L
   
+  freq_diff <- freq_y[parent] - freq_x[child]
+  
   disclosures <- 
-    freq[child] > 0  &
-    freq[parent] > 0  &
-    (freq[parent] - freq[child]) <= coalition
+    freq_x[child] > 0  &
+    freq_y[parent] > 0  &
+    freq_diff <= coalition
   
   if (!any(disclosures)) {
     return(rep(FALSE, nrow(crossTable)))
