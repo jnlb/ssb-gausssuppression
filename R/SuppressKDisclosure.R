@@ -162,20 +162,6 @@ KDisclosurePrimary <- function(data,
   x <- cbind(x, mc_obj$x)
   crossTable <- rbind(crossTable, mc_obj$crossTable)
   
-  x <- cbind(
-    x,
-    X_from_mc(
-      data = data,
-      x = x,
-      crossTable = crossTable,
-      mc_hierarchies = mc_hierarchies,
-      freqVar = freqVar,
-      coalition = coalition,
-      upper_bound = upper_bound,
-      ...
-    )
-  )
-  
   freq <- as.vector(crossprod(x, data[[freqVar]]))
   
   if(is.function(targeting)) {
