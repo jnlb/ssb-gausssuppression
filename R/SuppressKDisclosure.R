@@ -184,37 +184,69 @@ KDisclosurePrimary <- function(data,
   
   identifying <- targeting$identifying
   disclosive  <- targeting$disclosive
+  is_disclosive <- targeting$is_disclosive
+  
+  use_is_disclosive <- !is.null(is_disclosive)
+  
+  if (use_is_disclosive) {
+    if (is.null(identifying)) {
+      identifying <- crossTable
+    }
+    if (is.null(disclosive)) {
+      disclosive <- crossTable
+    }
+    validate_is_disclosive(is_disclosive, disclosive)
+    
+    if (isTRUE(all(is_disclosive))) {
+      is_disclosive <- NULL
+      use_is_disclosive <- FALSE
+    }
+  }
   
   if (!is.null(identifying) | !is.null(disclosive)) {
     
     if (!is.null(identifying)) {
       ma <- SSBtools::Match(identifying, crossTable)
       ma <- ma[!is.na(ma)]
+      if (use_is_disclosive) {
+        identifying <- identifying[!is.na(ma), ]
+        is_disclosive <- is_disclosive[!is.na(ma), ]
+      }
       y <- x[, ma]
     } else {
       y <- x
     }
-    y <- y[, !SSBtools::DummyDuplicated(y, rnd = TRUE), drop = FALSE]
+    if (!use_is_disclosive) {
+      y <- y[, !SSBtools::DummyDuplicated(y, rnd = TRUE), drop = FALSE]
+    }
     
     
     if (!is.null(disclosive)) {
       ma <- SSBtools::Match(disclosive, crossTable)
       ma <- ma[!is.na(ma)]
+      if (use_is_disclosive) {
+        disclosive <- disclosive[!is.na(ma), ]
+      }
       x <- x[, ma]
     }
-    x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
+    if (!use_is_disclosive) {
+      x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
+    }
   } else {
     x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
     y <- x
   }
   
-    FindDifferenceCells(
+  FindDifferenceCells(
     x = x,
     y = y,
     freq = freq,
     coalition = coalition,
     upper_bound = upper_bound,
-    crossTable = crossTable
+    crossTable = crossTable,
+    identifying = identifying,
+    disclosive = disclosive,
+    is_disclosive = is_disclosive
   )
 }
 
@@ -225,7 +257,11 @@ FindDifferenceCells <- function(x,
                                 freq,
                                 coalition,
                                 upper_bound = Inf,
-                                crossTable) {
+                                crossTable, # used only for via nrow()
+                                identifying,
+                                disclosive,
+                                is_disclosive
+                                ) {
   xty <- As_TsparseMatrix(crossprod(x, y))
   colSums_y_xty_j_1 <- colSums(y)[xty@j + 1]
   # finds children in x and parents in y
@@ -249,7 +285,64 @@ FindDifferenceCells <- function(x,
     return(rep(FALSE, nrow(crossTable)))
   }
   
-  diff_matrix <- drop0(y[, parent[disclosures], drop = FALSE] - 
-                       x[, child[disclosures], drop = FALSE])
-  diff_matrix
+  parent <- parent[disclosures]
+  child <- child[disclosures]
+  
+  use_is_disclosive <- !is.null(is_disclosive)
+  if (use_is_disclosive) {
+    identifying <- identifying[parent, , drop = FALSE]
+    disclosive <- disclosive[child, , drop = FALSE]
+    is_disclosive <- as.matrix(is_disclosive)
+    is_disclosive <- is_disclosive[child, , drop = FALSE]
+    
+    same_codes <- identifying == disclosive
+    same_codes[!is_disclosive] <- TRUE
+    same_row   <- apply(same_codes, 1, all)
+    
+    parent <- parent[!same_row]
+    child <- child[!same_row]
+  }
+  
+  diff_matrix <- drop0(y[, parent, drop = FALSE] - 
+                       x[, child, drop = FALSE])
+  
+  
+  diff_matrix[, !SSBtools::DummyDuplicated(diff_matrix, rnd = TRUE), drop = FALSE]
+  
+}
+
+
+
+
+
+
+
+# Written by ChatGPT
+validate_is_disclosive <- function(is_disclosive, disclosive) {
+  if (!is.data.frame(is_disclosive)) {
+    stop("`is_disclosive` must be a data frame.", call. = FALSE)
+  }
+  
+  if (!identical(dim(is_disclosive), dim(disclosive))) {
+    stop(
+      "`is_disclosive` must have the same dimensions as `disclosive`.",
+      call. = FALSE
+    )
+  }
+  
+  if (!identical(names(is_disclosive), names(disclosive))) {
+    stop(
+      "`is_disclosive` must have the same variable names as `disclosive`.",
+      call. = FALSE
+    )
+  }
+  
+  if (!all(vapply(is_disclosive, is.logical, logical(1)))) {
+    stop(
+      "All variables in `is_disclosive` must be logical.",
+      call. = FALSE
+    )
+  }
+  
+  # no return value needed
 }
