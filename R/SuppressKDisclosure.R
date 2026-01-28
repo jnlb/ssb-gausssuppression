@@ -323,7 +323,7 @@ FindDifferenceCells <- function(x,
     
     same_codes <- identifying == disclosive
     same_codes[!is_disclosive] <- TRUE
-    same_row   <- apply(same_codes, 1, all)
+    same_row <- rowSums(!same_codes) == 0
     
     parent <- parent[!same_row]
     child <- child[!same_row]
