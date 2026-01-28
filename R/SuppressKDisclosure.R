@@ -393,3 +393,150 @@ print_difference_cells <- function(identifying, disclosive, freq_diff) {
   rownames(identifying) <- NULL
   print(identifying)
 }
+
+
+
+
+#' Default `targeting` function for SuppressKDisclosure()
+#'
+#' Generates a `targeting` specification for use with
+#' [SuppressKDisclosure()]. The function is actually used internally by
+#' [KDisclosurePrimary()].
+#'
+#' @details
+#' Since [SSBtools::WildcardGlobbing()] is used, specifications may include
+#' the wildcard characters `*` and `?`, as well as the exclusion operator `!`.
+#'
+#' @param crossTable A `crossTable`, possibly extended after applying
+#' `mc_hierarchies`.
+#' @param identifying A named list specifying identifying cells.
+#' @param disclosive A named list specifying disclosive codes.
+#' @param ... Unused parameters.
+#'
+#' @returns
+#' A named `targeting` list. See [SuppressKDisclosure()].
+#'
+#' @export
+#' 
+#' @examples
+#' 
+#' crossTable <- SSBtools::ModelMatrix(SSBtoolsData("example1"), 
+#'      formula = ~age * eu + geo, crossTable = TRUE)$crossTable
+#' 
+#' default_targeting(crossTable)  # just NULL 
+#' 
+#' # geo identifying and age disclosive (age sensitive variable)
+#' default_targeting(crossTable, identifying = list(age = "Total", geo = "*"), 
+#'     disclosive = list(age = "*"))  # just NULL 
+#' 
+#' 
+#' # Not ok to disclose 'EU' But ok to disclose 'Spain' with 'EU' known
+#' default_targeting(crossTable, disclosive = list(geo = c("Portugal", "EU")))
+#' 
+default_targeting <- function(crossTable, identifying = NULL, disclosive = NULL, ...) {
+  
+  if (is.null(identifying) & is.null(disclosive)) {
+    return(NULL)
+  }
+  
+  check_targeting_lists(crossTable, identifying, disclosive)
+  
+  output <- NULL
+  
+  if (!is.null(identifying)) {
+    identifying_rows <- rep(TRUE, nrow(crossTable))
+    for (i in seq_along(identifying)) {
+      name_i <- names(identifying)[i]
+      identifying_rows <- identifying_rows & SSBtools::WildcardGlobbing(crossTable[name_i], as.data.frame(identifying[i]))
+    }
+    output$identifying <- crossTable[identifying_rows, , drop = FALSE]
+  } 
+  
+  if (!is.null(disclosive)) {
+    is_disclosive <- as.data.frame(matrix(FALSE, nrow(crossTable), ncol(crossTable)))
+    names(is_disclosive) <- names(crossTable)
+    
+    for (i in seq_along(disclosive)) {
+      name_i <- names(disclosive)[i]
+      is_disclosive[[name_i]] <- SSBtools::WildcardGlobbing(crossTable[name_i], as.data.frame(disclosive[i]))
+    }
+    
+    any_disclosive <- rowSums(is_disclosive) != 0
+    output$is_disclosive <- is_disclosive[any_disclosive, , drop = FALSE]
+    output$disclosive <- crossTable[any_disclosive, , drop = FALSE]
+  } 
+  
+  output
+}
+
+
+
+# Written by ChatGPT
+check_targeting_lists <- function(crossTable, identifying = NULL, disclosive = NULL) {
+  
+  ct_names <- names(crossTable)
+  
+  ## ---- identifying -------------------------------------------------
+  if (!is.null(identifying)) {
+    
+    if (!is.list(identifying)) {
+      stop("`identifying` must be a named list.", call. = FALSE)
+    }
+    
+    id_names <- names(identifying)
+    
+    if (is.null(id_names) || any(id_names == "")) {
+      stop("`identifying` must be a named list with no empty names.", call. = FALSE)
+    }
+    
+    if (!setequal(id_names, ct_names)) {
+      missing <- setdiff(ct_names, id_names)
+      extra   <- setdiff(id_names, ct_names)
+      
+      msg <- c()
+      if (length(missing)) {
+        msg <- c(msg, paste0("missing names: ", paste(missing, collapse = ", ")))
+      }
+      if (length(extra)) {
+        msg <- c(msg, paste0("unknown names: ", paste(extra, collapse = ", ")))
+      }
+      
+      stop(
+        "`identifying` must have the same names as `crossTable` (order does not matter): ",
+        paste(msg, collapse = "; "),
+        call. = FALSE
+      )
+    }
+  }
+  
+  ## ---- disclosive --------------------------------------------------
+  if (!is.null(disclosive)) {
+    
+    if (!is.list(disclosive)) {
+      stop("`disclosive` must be a named list.", call. = FALSE)
+    }
+    
+    dis_names <- names(disclosive)
+    
+    if (is.null(dis_names) || any(dis_names == "")) {
+      stop("`disclosive` must be a named list with no empty names.", call. = FALSE)
+    }
+    
+    if (length(dis_names) == 0) {
+      stop("`disclosive` must contain at least one element.", call. = FALSE)
+    }
+    
+    if (!all(dis_names %in% ct_names)) {
+      stop(
+        "`disclosive` contains names not found in `crossTable`: ",
+        paste(setdiff(dis_names, ct_names), collapse = ", "),
+        call. = FALSE
+      )
+    }
+  }
+  
+  invisible(TRUE)
+}
+
+
+
