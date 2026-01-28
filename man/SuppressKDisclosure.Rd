@@ -14,6 +14,7 @@ SuppressKDisclosure(
   hierarchies = NULL,
   freqVar = NULL,
   targeting = NULL,
+  print_frames = FALSE,
   ...,
   spec = PackageSpecs("kDisclosureSpec")
 )
@@ -45,6 +46,11 @@ unspecified.}
 
 \item{targeting}{NULL, a list, or a function that returns a list specifying
 attribute disclosure scenarios. See Details.}
+
+\item{print_frames}{Logical. If TRUE, additional data frames are printed to
+the console. When \code{mc_hierarchies} is used, this includes a
+data frame with hidden results. In addition, a data frame containing the
+primary suppressed difference cells is printed. The default is FALSE.}
 
 \item{...}{parameters passed to children functions}
 

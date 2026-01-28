@@ -53,6 +53,12 @@
 #'
 #' @param targeting NULL, a list, or a function that returns a list specifying
 #' attribute disclosure scenarios. See Details.
+#' 
+#' @param print_frames Logical. If TRUE, additional data frames are printed to
+#' the console. When `mc_hierarchies` is used, this includes a
+#' data frame with hidden results. In addition, a data frame containing the
+#' primary suppressed difference cells is printed. The default is FALSE.
+
 #'
 #' @return A data.frame containing the publishable data set, with a boolean
 #' variable `$suppressed` representing cell suppressions.
@@ -97,6 +103,7 @@ SuppressKDisclosure <- function(data,
                                 hierarchies = NULL,
                                 freqVar = NULL,
                                 targeting = NULL,
+                                print_frames = FALSE,
                                 ...,
                                 spec = PackageSpecs("kDisclosureSpec")) {
   additional_params <- list(...)
@@ -118,6 +125,7 @@ SuppressKDisclosure <- function(data,
     upper_bound = upper_bound,
     spec = spec,
     targeting = targeting,
+    print_frames = print_frames,
     ...
   )
 }
@@ -143,6 +151,7 @@ KDisclosurePrimary <- function(data,
                                coalition = 1,
                                upper_bound = Inf,
                                targeting = NULL,
+                               print_frames = FALSE,
                                ...) {
   
   
@@ -159,10 +168,22 @@ KDisclosurePrimary <- function(data,
     ...
   )
   
+  orig_nrow_crossTable <- nrow(crossTable)
+  
   x <- cbind(x, mc_obj$x)
   crossTable <- rbind(crossTable, mc_obj$crossTable)
   
   freq <- as.vector(crossprod(x, data[[freqVar]]))
+  
+  
+  if (print_frames & !is.null(mc_obj)) {
+    r <- SSBtools::SeqInc(orig_nrow_crossTable + 1, nrow(crossTable))
+    hidden_cells <- cbind(crossTable[r, ,drop = FALSE], freq = freq[r])
+    rownames(hidden_cells) <- NULL
+    cat("\n----- hidden cells from mc_hierarchies -----\n")
+    print(hidden_cells)
+  }
+  
   
   if(is.function(targeting)) {
     targeting <- targeting(..., freq = freq, x = x, crossTable = crossTable)
@@ -174,13 +195,16 @@ KDisclosurePrimary <- function(data,
   
   use_is_disclosive <- !is.null(is_disclosive)
   
-  if (use_is_disclosive) {
+  if (use_is_disclosive | print_frames) {
     if (is.null(identifying)) {
       identifying <- crossTable
     }
     if (is.null(disclosive)) {
       disclosive <- crossTable
     }
+  }
+    
+  if (use_is_disclosive) {
     validate_is_disclosive(is_disclosive, disclosive)
     
     if (isTRUE(all(is_disclosive))) {
@@ -194,9 +218,8 @@ KDisclosurePrimary <- function(data,
     if (!is.null(identifying)) {
       ma <- SSBtools::Match(identifying, crossTable)
       ma <- ma[!is.na(ma)]
-      if (use_is_disclosive) {
+      if (use_is_disclosive | print_frames) {
         identifying <- identifying[!is.na(ma), ]
-        is_disclosive <- is_disclosive[!is.na(ma), ]
       }
       y <- x[, ma]
     } else {
@@ -206,12 +229,14 @@ KDisclosurePrimary <- function(data,
       y <- y[, !SSBtools::DummyDuplicated(y, rnd = TRUE), drop = FALSE]
     }
     
-    
     if (!is.null(disclosive)) {
       ma <- SSBtools::Match(disclosive, crossTable)
       ma <- ma[!is.na(ma)]
-      if (use_is_disclosive) {
+      if (use_is_disclosive| print_frames) {
         disclosive <- disclosive[!is.na(ma), ]
+      }
+      if (use_is_disclosive) {
+        is_disclosive <- is_disclosive[!is.na(ma), ]
       }
       x <- x[, ma]
     }
@@ -221,6 +246,10 @@ KDisclosurePrimary <- function(data,
   } else {
     x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
     y <- x
+  }
+  
+  if (use_is_disclosive) {  # Extra check after modifications  
+    validate_is_disclosive(is_disclosive, disclosive)
   }
   
   FindDifferenceCells(
@@ -233,7 +262,8 @@ KDisclosurePrimary <- function(data,
     crossTable = crossTable,
     identifying = identifying,
     disclosive = disclosive,
-    is_disclosive = is_disclosive
+    is_disclosive = is_disclosive,
+    print_frames 
   )
 }
 
@@ -248,7 +278,8 @@ FindDifferenceCells <- function(x,
                                 crossTable, # used only for via nrow()
                                 identifying,
                                 disclosive,
-                                is_disclosive
+                                is_disclosive,
+                                print_frames = FALSE
                                 ) {
   xty <- As_TsparseMatrix(crossprod(x, y))
   colSums_y_xty_j_1 <- colSums(y)[xty@j + 1]
@@ -275,13 +306,18 @@ FindDifferenceCells <- function(x,
     return(rep(FALSE, nrow(crossTable)))
   }
   
+  freq_diff <- freq_diff[disclosures]
   parent <- parent[disclosures]
   child <- child[disclosures]
   
   use_is_disclosive <- !is.null(is_disclosive)
-  if (use_is_disclosive) {
+  
+  if (use_is_disclosive | print_frames) {
     identifying <- identifying[parent, , drop = FALSE]
     disclosive <- disclosive[child, , drop = FALSE]
+  }
+  
+  if (use_is_disclosive) {
     is_disclosive <- as.matrix(is_disclosive)
     is_disclosive <- is_disclosive[child, , drop = FALSE]
     
@@ -291,6 +327,17 @@ FindDifferenceCells <- function(x,
     
     parent <- parent[!same_row]
     child <- child[!same_row]
+    if (print_frames) {
+      identifying <- identifying[!same_row, , drop = FALSE]
+      disclosive <- disclosive[!same_row, , drop = FALSE]
+      freq_diff <- freq_diff[!same_row]
+    }
+  }
+  
+  if (print_frames) {
+    cat("\n---- primary suppressed difference cells ---\n")
+    print_difference_cells(identifying, disclosive, freq_diff)
+    cat("\n")
   }
   
   diff_matrix <- drop0(y[, parent, drop = FALSE] - 
@@ -335,4 +382,14 @@ validate_is_disclosive <- function(is_disclosive, disclosive) {
   }
   
   # no return value needed
+}
+
+
+
+print_difference_cells <- function(identifying, disclosive, freq_diff) {
+  r <- identifying != disclosive
+  identifying[r] <- paste(identifying[r], disclosive[r], sep = "-")
+  identifying$diff <- freq_diff
+  rownames(identifying) <- NULL
+  print(identifying)
 }

@@ -987,7 +987,7 @@ GaussSuppressionFromData = function(data, dimVar = NULL, freqVar=NULL,
       "domWeightMethod", # PackageSpecs, dominanceSpec, MagnitudeRule
       "n", "k", "pPercent", "allDominance", "sWeightVar", # SuppressDominantCells,  MagnitudeRule
       "remove0", # SuppressFewContributors, NContributorsRule
-      "coalition", "mc_hierarchies", "upper_bound", "targeting" # SuppressKDisclosure
+      "coalition", "mc_hierarchies", "upper_bound", "targeting", "print_frames" # SuppressKDisclosure
     )
     allowed_unused_dots <- unique(c(allowed_unused_dots, extra_allowed_unused)) 
     if (hasArg("avoidHierarchical") & hasArg("avoid_hierarchical")) {   
