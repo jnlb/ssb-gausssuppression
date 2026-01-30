@@ -4,10 +4,13 @@
 \alias{default_targeting}
 \title{Default \code{targeting} function for SuppressKDisclosure()}
 \usage{
-default_targeting(crossTable, identifying = NULL, disclosive = NULL, ...)
+default_targeting(crossTable, x, identifying = NULL, disclosive = NULL, ...)
 }
 \arguments{
 \item{crossTable}{A \code{crossTable}, possibly extended after applying
+\code{mc_hierarchies}.}
+
+\item{x}{The model matrix, \code{x}, possibly extended after applying
 \code{mc_hierarchies}.}
 
 \item{identifying}{A named list specifying identifying cells.}
@@ -30,17 +33,34 @@ the wildcard characters \code{*} and \verb{?}, as well as the exclusion operator
 }
 \examples{
 
-crossTable <- SSBtools::ModelMatrix(SSBtoolsData("example1"), 
-     formula = ~age * eu + geo, crossTable = TRUE)$crossTable
+mm <- SSBtools::ModelMatrix(SSBtoolsData("example1"), 
+     formula = ~age * eu + geo, crossTable = TRUE)
+crossTable <- mm$crossTable
+x <- mm$modelMatrix      
 
-default_targeting(crossTable)  # just NULL 
+default_targeting(crossTable, x)  # just NULL 
 
 # geo identifying and age disclosive (age sensitive variable)
-default_targeting(crossTable, identifying = list(age = "Total", geo = "*"), 
-    disclosive = list(age = "*"))  # just NULL 
-
-
-# Not ok to disclose 'EU' But ok to disclose 'Spain' with 'EU' known
-default_targeting(crossTable, disclosive = list(geo = c("Portugal", "EU")))
+a2 <- default_targeting(crossTable, x, 
+                        identifying = "geo", 
+                        disclosive = "age")
+a1 <- default_targeting(crossTable, x, 
+                        identifying = list(age = "Total", geo = "*"), 
+                        disclosive = list(age = "*")) 
+identical(a1, a2)
+a1                         
+                  
+                  
+# Not ok to disclose 'EU' and 'Portugal'
+# But ok to disclose 'Spain' with 'EU' known
+# and also ok to disclose 'Spain' in other table cells without 'EU' as marginal  
+default_targeting(crossTable, x, 
+                  disclosive = list(geo = c("Portugal", "EU")))
+                  
+# As above but now also ok to disclose 'Portugal' from 'EU' known,
+# since protection only considers 'age' identifying.                   
+default_targeting(crossTable, x, 
+                  identifying = "age",
+                  disclosive = list(geo = c("Portugal", "EU")))                 
 
 }
