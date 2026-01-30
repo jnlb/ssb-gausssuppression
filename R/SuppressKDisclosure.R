@@ -411,16 +411,24 @@ print_difference_cells <- function(identifying, disclosive, freq_diff) {
 #' [SuppressKDisclosure()]. The function is actually used internally by
 #' [KDisclosurePrimary()].
 #'
-#' @details
-#' Since [SSBtools::WildcardGlobbing()] is used, specifications may include
-#' the wildcard characters `*` and `?`, as well as the exclusion operator `!`.
 #'
 #' @param crossTable A `crossTable`, possibly extended after applying
 #' `mc_hierarchies`.
 #' @param x The model matrix, `x`, possibly extended after applying 
 #' `mc_hierarchies`.
-#' @param identifying A named list specifying identifying cells.
-#' @param disclosive A named list specifying disclosive codes.
+#' 
+#' @param identifying Specification of information that an intruder may already
+#' know. The specification is subject to the same requirements as `disclosive`
+#' below. If not all variables are included, total codes for the missing
+#' variables are derived automatically. This requires that the overall total
+#' is included as an output row.
+#'
+#' @param disclosive Specification of information considered unacceptable to
+#' disclose. Either a character vector of variable names, or a named list with
+#' variable names as names and specified codes as values. The wildcard
+#' characters `*` and `?`, as well as the exclusion operator `!`, may be used,
+#' since [SSBtools::WildcardGlobbing()] is applied.
+#' 
 #' @param ... Unused parameters.
 #'
 #' @returns

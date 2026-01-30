@@ -13,9 +13,17 @@ default_targeting(crossTable, x, identifying = NULL, disclosive = NULL, ...)
 \item{x}{The model matrix, \code{x}, possibly extended after applying
 \code{mc_hierarchies}.}
 
-\item{identifying}{A named list specifying identifying cells.}
+\item{identifying}{Specification of information that an intruder may already
+know. The specification is subject to the same requirements as \code{disclosive}
+below. If not all variables are included, total codes for the missing
+variables are derived automatically. This requires that the overall total
+is included as an output row.}
 
-\item{disclosive}{A named list specifying disclosive codes.}
+\item{disclosive}{Specification of information considered unacceptable to
+disclose. Either a character vector of variable names, or a named list with
+variable names as names and specified codes as values. The wildcard
+characters \code{*} and \verb{?}, as well as the exclusion operator \code{!}, may be used,
+since \code{\link[SSBtools:WildcardGlobbing]{SSBtools::WildcardGlobbing()}} is applied.}
 
 \item{...}{Unused parameters.}
 }
@@ -26,10 +34,6 @@ A named \code{targeting} list. See \code{\link[=SuppressKDisclosure]{SuppressKDi
 Generates a \code{targeting} specification for use with
 \code{\link[=SuppressKDisclosure]{SuppressKDisclosure()}}. The function is actually used internally by
 \code{\link[=KDisclosurePrimary]{KDisclosurePrimary()}}.
-}
-\details{
-Since \code{\link[SSBtools:WildcardGlobbing]{SSBtools::WildcardGlobbing()}} is used, specifications may include
-the wildcard characters \code{*} and \verb{?}, as well as the exclusion operator \code{!}.
 }
 \examples{
 
