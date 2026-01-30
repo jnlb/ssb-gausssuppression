@@ -13,7 +13,9 @@ SuppressKDisclosure(
   formula = NULL,
   hierarchies = NULL,
   freqVar = NULL,
-  targeting = NULL,
+  targeting = default_targeting,
+  identifying = NULL,
+  disclosive = NULL,
   print_frames = FALSE,
   ...,
   spec = PackageSpecs("kDisclosureSpec")
@@ -44,8 +46,12 @@ unspecified.}
 
 \item{freqVar}{name of the frequency variable in \code{data}}
 
-\item{targeting}{NULL, a list, or a function that returns a list specifying
-attribute disclosure scenarios. See Details.}
+\item{targeting}{The mechanism underlying the interpretation of
+\code{identifying} and \code{disclosive}. See Details in \code{\link[=KDisclosurePrimary]{KDisclosurePrimary()}}.}
+
+\item{identifying}{A named list specifying identifying cells.}
+
+\item{disclosive}{A named list specifying disclosive codes.}
 
 \item{print_frames}{Logical. If TRUE, additional data frames are printed to
 the console. When \code{mc_hierarchies} is used, this includes a
@@ -64,29 +70,6 @@ variable \verb{$suppressed} representing cell suppressions.
 A function for suppressing frequency tables using the k-disclosure method.
 }
 \details{
-The \code{targeting} specification is a named list that may contain the following
-optional elements. References to \code{crossTable} below refer to a data frame
-that may be extended after applying \code{mc_hierarchies}.
-
-\describe{
-\item{\code{identifying}}{A data frame containing selected rows from
-\code{crossTable}. Membership in the cells represented by these rows is regarded
-as information that an intruder may already know. If omitted, it defaults
-to \code{crossTable}.}
-
-\item{\code{disclosive}}{A data frame containing selected rows from
-\code{crossTable}. If an intruder can infer membership in the cells represented
-by these rows, this is considered an unacceptable disclosure, subject to
-any further specification provided by \code{is_disclosive}. If omitted, it
-defaults to \code{crossTable}.}
-
-\item{\code{is_disclosive}}{A data frame with the same structure as
-\code{disclosive}, but with logical variables. It indicates which codes in
-\code{disclosive} are regarded as disclosive. When specified, disclosure is
-assessed by which codes within a revealed cell are disclosed. If omitted,
-it is equivalent to a data frame where all elements are \code{TRUE}.}
-}
-
 The argument \code{targeting} may also be a function that returns such a list.
 This works similarly to supplied functions in \code{GaussSuppressionFromData()}.
 Note, however, that the function operates on possibly extended versions of

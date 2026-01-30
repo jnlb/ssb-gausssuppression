@@ -12,7 +12,7 @@ KDisclosurePrimary(
   mc_hierarchies = NULL,
   coalition = 1,
   upper_bound = Inf,
-  targeting = NULL,
+  targeting = default_targeting,
   print_frames = FALSE,
   ...
 )
@@ -37,7 +37,8 @@ definition of k-disclosure.}
 Default set to \code{Inf}}
 
 \item{targeting}{NULL, a list, or a function that returns a list specifying
-attribute disclosure scenarios. See Details.}
+attribute disclosure scenarios. See Details.
+Default is \link{default_targeting}.}
 
 \item{print_frames}{Logical. If TRUE, additional data frames are printed to
 the console. When \code{mc_hierarchies} is used, this includes a
@@ -52,6 +53,30 @@ dgCMatrix corresponding to primary suppressed cells
 \description{
 Function for constructing model matrix columns representing primary suppressed
 difference cells
+}
+\details{
+The \code{targeting} specification is a named list that may contain the following
+optional elements. References to \code{crossTable} below refer to a data frame
+that may be extended after applying \code{mc_hierarchies}.
+
+\describe{
+\item{\code{identifying}}{A data frame containing selected rows from
+\code{crossTable}. Membership in the cells represented by these rows is regarded
+as information that an intruder may already know. If omitted, it defaults
+to \code{crossTable}.}
+
+\item{\code{disclosive}}{A data frame containing selected rows from
+\code{crossTable}. If an intruder can infer membership in the cells represented
+by these rows, this is considered an unacceptable disclosure, subject to
+any further specification provided by \code{is_disclosive}. If omitted, it
+defaults to \code{crossTable}.}
+
+\item{\code{is_disclosive}}{A data frame with the same structure as
+\code{disclosive}, but with logical variables. It indicates which codes in
+\code{disclosive} are regarded as disclosive. When specified, disclosure is
+assessed by which codes within a revealed cell are disclosed. If omitted,
+it is equivalent to a data frame where all elements are \code{TRUE}.}
+}
 }
 \author{
 Daniel P. Lupp and Øyvind Langsrud
