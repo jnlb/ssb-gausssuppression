@@ -285,8 +285,7 @@ FindDifferenceCells <- function(x,
   colSums_y_xty_j_1 <- colSums(y)[xty@j + 1]
   # finds children in x and parents in y
   r <- colSums(x)[xty@i + 1] == xty@x & 
-    colSums_y_xty_j_1     != xty@x & 
-    (colSums_y_xty_j_1 - xty@x) <= upper_bound
+    colSums_y_xty_j_1     != xty@x 
   
   if (!any(r)) {
     return(rep(FALSE, nrow(crossTable)))
@@ -298,6 +297,7 @@ FindDifferenceCells <- function(x,
   freq_diff <- freq_y[parent] - freq_x[child]
   
   disclosures <- 
+    freq_x[child] <= upper_bound  &
     freq_x[child] > 0  &
     freq_y[parent] > 0  &
     freq_diff <= coalition
