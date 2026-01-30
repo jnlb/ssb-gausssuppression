@@ -221,7 +221,7 @@ KDisclosurePrimary <- function(data,
       if (use_is_disclosive | print_frames) {
         identifying <- identifying[!is.na(ma), ]
       }
-      y <- x[, ma]
+      y <- x[, ma, drop = FALSE]
     } else {
       y <- x
     }
@@ -238,7 +238,7 @@ KDisclosurePrimary <- function(data,
       if (use_is_disclosive) {
         is_disclosive <- is_disclosive[!is.na(ma), ]
       }
-      x <- x[, ma]
+      x <- x[, ma, drop = FALSE]
     }
     if (!use_is_disclosive) {
       x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
