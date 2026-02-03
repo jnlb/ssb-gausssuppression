@@ -68,7 +68,8 @@
 #' mc_nomargs <- list(inj = inj3)
 #'
 #' #' # Example with formula, no meaningful combination
-#' out <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq", formula = ~mun*inj)
+#' out <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq", 
+#'                            formula = ~mun*inj, print_frames = TRUE)
 #' show_out(out)
 #'
 #' # Example with hierarchy and meaningful combination
@@ -78,7 +79,8 @@
 #'
 #' #' # Example of table without mariginals, and mc_hierarchies to protect
 #' out3 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
-#'                        formula = ~mun:inj, mc_hierarchies = mc_nomargs )
+#'                        formula = ~mun:inj, mc_hierarchies = mc_nomargs,
+#'                        print_frames = TRUE)
 #' show_out(out3)
 #' 
 #' 
@@ -117,7 +119,8 @@
 #' # Same example as out_d, but with cells forced to be published, yielding unsafe table
 #' out_unsafe <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
 #'                                  formula = ~mun*inj, disclosive = "inj", 
-#'                                  forced = c(12,14,15), output = "all")
+#'                                  forced = c(12,14,15), output = "all",
+#'                                  print_frames = TRUE)
 #' show_out(out_unsafe$publish)
 #' 
 #' # colnames in $unsafe give an indication as to which cells/differences are unsafe
