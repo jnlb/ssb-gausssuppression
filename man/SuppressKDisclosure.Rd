@@ -156,6 +156,15 @@ out_i2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
 show_out(out_i2)
 
 
+# Same example as out_d, but with cells forced to be published, yielding unsafe table
+out_unsafe <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+                                 formula = ~mun*inj, disclosive = "inj", 
+                                 forced = c(12,14,15), output = "all")
+show_out(out_unsafe$publish)
+
+# colnames in $unsafe give an indication as to which cells/differences are unsafe
+colnames(out_unsafe$unsafe)
+                                       
 }
 \author{
 Daniel P. Lupp and Øyvind Langsrud
