@@ -86,11 +86,11 @@ applicable.
 }
 \examples{
 # data
-data <- SSBtools::SSBtoolsData("mun_accidents")
+mun_a <- SSBtools::SSBtoolsData("mun_accidents")
 
-# function to print suppressed output in wide format 
+# Function to print output in wide format, marking suppressed values with `*`
 show_out <- function(out) {  
-  out$freq[out$suppressed] <- "-"
+  out$freq = sprintf("\%s\%s", out$freq, c(" ","*")[1+out$suppressed])
   a <- reshape(out[1:3], idvar = "mun", timevar = "inj", direction = "wide", )
   names(a) <- sub("^freq\\\\.", "", names(a))
   print(a)}
@@ -110,19 +110,50 @@ mc_dimlist <- list(inj = inj2)
 mc_nomargs <- list(inj = inj3)
 
 #' # Example with formula, no meaningful combination
-out <- SuppressKDisclosure(data, coalition = 1, freqVar = "freq", formula = ~mun*inj)
+out <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq", formula = ~mun*inj)
 show_out(out)
 
 # Example with hierarchy and meaningful combination
-out2 <- SuppressKDisclosure(data, coalition = 1, freqVar = "freq",
+out2 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
                        hierarchies = dimlists, mc_hierarchies = mc_dimlist)
 show_out(out2)
 
 #' # Example of table without mariginals, and mc_hierarchies to protect
-out3 <- SuppressKDisclosure(data, coalition = 1, freqVar = "freq",
+out3 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
                        formula = ~mun:inj, mc_hierarchies = mc_nomargs )
 show_out(out3)
 
+
+### Examples with identifying and disclosive ###
+
+mun_b <- SSBtools::SSBtoolsData("mun_accidents")
+mun_b$freq <- c(0,5,3,4,1,0,
+                0,0,2,0,0,6,
+                4,1,0,4,0,0,
+                0,0,0,0,0,0)
+                
+out_d <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+                                 formula = ~mun*inj, disclosive= "inj")
+show_out(out_d)                                                    
+                
+
+out_d1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+                              formula = ~mun*inj, mc_hierarchies = mc_dimlist,
+                              disclosive = list(mun =  "k3", inj = "injured"))
+show_out(out_d1)                             
+
+out_d2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+                              formula = ~mun*inj, 
+                              disclosive = list(inj = "serious", mun = "k3"))
+show_out(out_d2)                         
+
+out_i1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+                              formula = ~mun*inj, identifying = "mun")
+show_out(out_i1)                            
+ 
+out_i2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+                              formula = ~mun*inj, identifying = "inj")
+show_out(out_i2)
 
 
 }

@@ -327,7 +327,7 @@ FindDifferenceCells <- function(x,
                                 freq_y = freq_x,
                                 coalition,
                                 upper_bound = Inf,
-                                crossTable, # used only for via nrow()
+                                crossTable,
                                 identifying,
                                 disclosive,
                                 is_disclosive,
@@ -364,10 +364,15 @@ FindDifferenceCells <- function(x,
   
   use_is_disclosive <- !is.null(is_disclosive)
   
-  if (use_is_disclosive | print_frames) {
-    identifying <- identifying[parent, , drop = FALSE]
-    disclosive <- disclosive[child, , drop = FALSE]
+  if (is.null(identifying)) {
+    identifying <- crossTable
   }
+  if (is.null(disclosive)) {
+    disclosive <- crossTable
+  }
+  
+  identifying <- identifying[parent, , drop = FALSE]
+  disclosive <- disclosive[child, , drop = FALSE]
   
   if (use_is_disclosive) {
     is_disclosive <- as.matrix(is_disclosive)
@@ -379,22 +384,24 @@ FindDifferenceCells <- function(x,
     
     parent <- parent[!same_row]
     child <- child[!same_row]
-    if (print_frames) {
-      identifying <- identifying[!same_row, , drop = FALSE]
-      disclosive <- disclosive[!same_row, , drop = FALSE]
-      freq_diff <- freq_diff[!same_row]
-    }
-  }
-  
-  if (print_frames) {
-    cat("\n---- primary suppressed difference cells ---\n")
-    print_difference_cells(identifying, disclosive, freq_diff)
-    cat("\n")
+    
+    identifying <- identifying[!same_row, , drop = FALSE]
+    disclosive <- disclosive[!same_row, , drop = FALSE]
+    freq_diff <- freq_diff[!same_row]
   }
   
   diff_matrix <- drop0(y[, parent, drop = FALSE] - 
                        x[, child, drop = FALSE])
   
+  diff_cells <- difference_cells(identifying, disclosive)
+  colnames(diff_matrix) <- apply(diff_cells , 1 , paste , collapse = ":" )
+  
+  if (print_frames) {
+    cat("\n---- primary suppressed difference cells ---\n")
+    diff_cells$diff <- freq_diff
+    print(diff_cells)
+    cat("\n")
+  }
   
   diff_matrix[, !SSBtools::DummyDuplicated(diff_matrix, rnd = TRUE), drop = FALSE]
   
@@ -438,12 +445,11 @@ validate_is_disclosive <- function(is_disclosive, disclosive) {
 
 
 
-print_difference_cells <- function(identifying, disclosive, freq_diff) {
+difference_cells <- function(identifying, disclosive) {
   r <- identifying != disclosive
   identifying[r] <- paste(identifying[r], disclosive[r], sep = "-")
-  identifying$diff <- freq_diff
   rownames(identifying) <- NULL
-  print(identifying)
+  identifying
 }
 
 
