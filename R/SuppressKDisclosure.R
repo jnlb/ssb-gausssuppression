@@ -193,6 +193,17 @@ SuppressKDisclosure <- function(data,
 #'   `disclosive` are regarded as disclosive. When specified, disclosure is
 #'   assessed by which codes within a revealed cell are disclosed. If omitted,
 #'   it is equivalent to a data frame where all elements are `TRUE`.}
+#'   
+#'   \item{`exclude_relations`}{A sparse logical matrix (or a dummy matrix with
+#'   values 0/1) defining identifying–disclosive relations that are ignored.
+#'   Rows correspond to rows in `disclosive` (or `crossTable` if `disclosive` is
+#'   not specified), and columns correspond to rows in `identifying` (or
+#'   `crossTable` if `identifying` is not specified). Relations marked as `TRUE`
+#'   (or 1) are excluded.}
+#'
+#'   \item{`include_relations`}{As for `exclude_relations`, but defining the
+#'   identifying–disclosive relations that are considered. Only relations marked
+#'   as `TRUE` (or 1) are included; all others are ignored.}
 #' }
 #'
 #' @inheritParams SuppressKDisclosure
