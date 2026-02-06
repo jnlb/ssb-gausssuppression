@@ -43,4 +43,26 @@ test_that("SuppressKDisclosure", {
   expect_identical(as.list(table(out3[out3[["suppressed"]], "inj"])), 
                    list(none = 1L, unknown = 3L))
   
+  
+  
+  d2 <- SSBtoolsData("d2")
+  
+  minus <- c(5, 7, 9, 11, 12, 13, 21, 26, 28, 29, 31, 34, 37, 38)
+  d <- d2[-minus, ]
+  
+  suppsums <- integer(0)
+  
+  disclosive <- vector("list", 2)
+  disclosive[[2]] <- list(region = c("A", "C", "G"), main_income = c("pensions", "wages"))
+  for (extend0 in c(TRUE, FALSE)) {
+    for (i in 1:2) {
+      a <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 3, 
+                               extend0 = extend0, disclosive = disclosive[[i]],
+                               whenEmptyUnsuppressed = NULL,
+                               printInc = printInc)
+      suppsums <- c(suppsums, sum(a$suppressed))
+    }
+  }
+  expect_identical(suppsums, c(53L, 28L, 32L, 22L))
+  
 })
