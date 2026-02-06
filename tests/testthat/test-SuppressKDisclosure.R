@@ -65,4 +65,41 @@ test_that("SuppressKDisclosure", {
   }
   expect_identical(suppsums, c(53L, 28L, 32L, 22L))
   
+  
+  
+  
+  
+  
+  targ <- default_targeting(crossTable = mm$crossTable, x, 
+                            disclosive = disclosive[[2]], 
+                            identifying = list(region = "!8", main_income = "*"))
+  
+  targ[[1]][10:11, 1] <- "99"   # to test matching
+  targ[[2]][10:11, 1] <- "999"  # 
+  
+  a1 <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", 
+                            coalition = 55, extend0 = FALSE, 
+                            targeting = targ, whenEmptyUnsuppressed = NULL,
+                            printInc = printInc, print_frames = TRUE, output = "all")
+  
+  me <- Matrix::Matrix(FALSE, nrow(targ$disclosive), nrow(targ$identifying))
+  
+  me[targ$disclosive$region == "A" & targ$disclosive$main_income == "assistance", 
+     targ$identifying$region == "1" & targ$identifying$main_income ==  "Total"] <- TRUE
+  
+  
+  targ$exclude_relations <- me
+  
+  
+  a2 <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 55, 
+                            extend0 = FALSE, targeting = targ, 
+                            whenEmptyUnsuppressed = NULL,
+                            printInc = printInc, print_frames = TRUE, 
+                            output = "all")
+  
+  expect_identical(c(ncol(a2$xExtraPrimary), ncol(a1$xExtraPrimary)), 23:24)
+  
+  
+  
+  
 })

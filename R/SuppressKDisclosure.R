@@ -267,10 +267,14 @@ KDisclosurePrimary <- function(data,
   identifying <- targeting$identifying
   disclosive  <- targeting$disclosive
   is_disclosive <- targeting$is_disclosive
-  
+  exclude_relations <- targeting$exclude_relations
+  include_relations <- targeting$include_relations
+
+    
   use_is_disclosive <- !is.null(is_disclosive)
   
-  if (use_is_disclosive | !is.null(identifying) | !is.null(disclosive)) {
+  if (use_is_disclosive | !is.null(identifying) | !is.null(disclosive) | 
+      !is.null(exclude_relations) | !is.null(include_relations)) {
     if (is.null(identifying)) {
       identifying <- crossTable
     }
@@ -288,32 +292,38 @@ KDisclosurePrimary <- function(data,
     }
   }
   
+  
   if (!is.null(identifying)) {   # from above !is.null(disclosive) when !is.null(identifying)
     
     # Match identifying
     ma <- SSBtools::Match(identifying, crossTable)
-    ma <- ma[!is.na(ma)]
     identifying <- identifying[!is.na(ma), ]
-    y <- x[, ma, drop = FALSE]
+    exclude_relations <- exclude_relations[, !is.na(ma) ,drop = FALSE]
+    include_relations <- include_relations[, !is.na(ma) ,drop = FALSE]
+    y <- x[, ma[!is.na(ma)], drop = FALSE]
     if (!use_is_disclosive) {
       sel <- !SSBtools::DummyDuplicated(y, rnd = TRUE)
       y <- y[, sel, drop = FALSE]
       identifying <- identifying[sel, ]
+      exclude_relations <- exclude_relations[, sel,drop = FALSE]
+      include_relations <- include_relations[, sel,drop = FALSE]
     }
-    
     
     # Match disclosive
     ma <- SSBtools::Match(disclosive, crossTable)
-    ma <- ma[!is.na(ma)]
     disclosive <- disclosive[!is.na(ma), ]
+    exclude_relations <- exclude_relations[!is.na(ma), ,drop = FALSE]
+    include_relations <- include_relations[!is.na(ma), ,drop = FALSE]
     if (use_is_disclosive) {
       is_disclosive <- is_disclosive[!is.na(ma), ]
     }
-    x <- x[, ma, drop = FALSE]
+    x <- x[, ma[!is.na(ma)], drop = FALSE]
     if (!use_is_disclosive) {
       sel <- !SSBtools::DummyDuplicated(x, rnd = TRUE)
       x <- x[, sel, drop = FALSE]
       disclosive <- disclosive[sel, ]
+      exclude_relations <- exclude_relations[sel, ,drop = FALSE]
+      include_relations <- include_relations[sel, ,drop = FALSE]
     }
     
   } else {
@@ -321,6 +331,8 @@ KDisclosurePrimary <- function(data,
     x <- x[, sel, drop = FALSE]
     y <- x
     crossTable <- crossTable[sel, ]
+    exclude_relations <- exclude_relations[sel, sel, drop = FALSE]
+    include_relations <- include_relations[sel, sel, drop = FALSE]
   }
   
   if (use_is_disclosive) {  # Extra check after modifications  
@@ -338,6 +350,8 @@ KDisclosurePrimary <- function(data,
     identifying = identifying,
     disclosive = disclosive,
     is_disclosive = is_disclosive,
+    exclude_relations  = exclude_relations,
+    include_relations = include_relations,
     print_frames = print_frames
   )
 }
@@ -354,9 +368,21 @@ FindDifferenceCells <- function(x,
                                 identifying,
                                 disclosive,
                                 is_disclosive,
+                                exclude_relations,
+                                include_relations,
                                 print_frames = FALSE
                                 ) {
-  xty <- As_TsparseMatrix(crossprod(x, y))
+  
+  xty <- crossprod(x, y)
+  
+  if (!is.null(exclude_relations)) {
+    xty <- xty - xty * exclude_relations # This way to preserve matrix sparsity 
+  }
+  if (!is.null(include_relations)) {
+    xty <- xty * include_relations
+  }
+  
+  xty <- As_TsparseMatrix(xty, do_drop0 = TRUE) # do_drop0 = TRUE is default in As_TsparseMatrix  
   colSums_y_xty_j_1 <- colSums(y)[xty@j + 1]
   # finds children in x and parents in y
   r <- colSums(x)[xty@i + 1] == xty@x & 
