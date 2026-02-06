@@ -270,7 +270,7 @@ KDisclosurePrimary <- function(data,
   
   use_is_disclosive <- !is.null(is_disclosive)
   
-  if (use_is_disclosive | print_frames) {
+  if (use_is_disclosive | !is.null(identifying) | !is.null(disclosive)) {
     if (is.null(identifying)) {
       identifying <- crossTable
     }
@@ -288,39 +288,39 @@ KDisclosurePrimary <- function(data,
     }
   }
   
-  if (!is.null(identifying) | !is.null(disclosive)) {
+  if (!is.null(identifying)) {   # from above !is.null(disclosive) when !is.null(identifying)
     
-    if (!is.null(identifying)) {
-      ma <- SSBtools::Match(identifying, crossTable)
-      ma <- ma[!is.na(ma)]
-      if (use_is_disclosive | print_frames) {
-        identifying <- identifying[!is.na(ma), ]
-      }
-      y <- x[, ma, drop = FALSE]
-    } else {
-      y <- x
-    }
+    # Match identifying
+    ma <- SSBtools::Match(identifying, crossTable)
+    ma <- ma[!is.na(ma)]
+    identifying <- identifying[!is.na(ma), ]
+    y <- x[, ma, drop = FALSE]
     if (!use_is_disclosive) {
-      y <- y[, !SSBtools::DummyDuplicated(y, rnd = TRUE), drop = FALSE]
+      sel <- !SSBtools::DummyDuplicated(y, rnd = TRUE)
+      y <- y[, sel, drop = FALSE]
+      identifying <- identifying[sel, ]
     }
     
-    if (!is.null(disclosive)) {
-      ma <- SSBtools::Match(disclosive, crossTable)
-      ma <- ma[!is.na(ma)]
-      if (use_is_disclosive| print_frames) {
-        disclosive <- disclosive[!is.na(ma), ]
-      }
-      if (use_is_disclosive) {
-        is_disclosive <- is_disclosive[!is.na(ma), ]
-      }
-      x <- x[, ma, drop = FALSE]
+    
+    # Match disclosive
+    ma <- SSBtools::Match(disclosive, crossTable)
+    ma <- ma[!is.na(ma)]
+    disclosive <- disclosive[!is.na(ma), ]
+    if (use_is_disclosive) {
+      is_disclosive <- is_disclosive[!is.na(ma), ]
     }
+    x <- x[, ma, drop = FALSE]
     if (!use_is_disclosive) {
-      x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
+      sel <- !SSBtools::DummyDuplicated(x, rnd = TRUE)
+      x <- x[, sel, drop = FALSE]
+      disclosive <- disclosive[sel, ]
     }
+    
   } else {
-    x <- x[, !SSBtools::DummyDuplicated(x, rnd = TRUE), drop = FALSE]
+    sel <- !SSBtools::DummyDuplicated(x, rnd = TRUE)
+    x <- x[, sel, drop = FALSE]
     y <- x
+    crossTable <- crossTable[sel, ]
   }
   
   if (use_is_disclosive) {  # Extra check after modifications  
@@ -338,7 +338,7 @@ KDisclosurePrimary <- function(data,
     identifying = identifying,
     disclosive = disclosive,
     is_disclosive = is_disclosive,
-    print_frames 
+    print_frames = print_frames
   )
 }
 
