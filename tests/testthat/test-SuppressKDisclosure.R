@@ -68,9 +68,9 @@ test_that("SuppressKDisclosure", {
   
   
   
+  mm <- SSBtools::ModelMatrix(d, dimVar = 1:4, crossTable = TRUE)
   
-  
-  targ <- default_targeting(crossTable = mm$crossTable, x, 
+  targ <- default_targeting(crossTable = mm$crossTable, x = mm$modelMatrix, 
                             disclosive = disclosive[[2]], 
                             identifying = list(region = "!8", main_income = "*"))
   
