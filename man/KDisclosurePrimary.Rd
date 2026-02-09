@@ -77,16 +77,22 @@ defaults to \code{crossTable}.}
 assessed by which codes within a revealed cell are disclosed. If omitted,
 it is equivalent to a data frame where all elements are \code{TRUE}.}
 
-\item{\code{exclude_relations}}{A sparse logical matrix (or a dummy matrix with
-values 0/1) defining identifying–sensitive relations that are ignored.
-Rows correspond to rows in \code{sensitive} (or \code{crossTable} if \code{sensitive} is
-not specified), and columns correspond to rows in \code{identifying} (or
-\code{crossTable} if \code{identifying} is not specified). Relations marked as \code{TRUE}
-(or 1) are excluded.}
+\item{\code{exclude_relations}}{A specification defining identifying–sensitive
+relations that are ignored. This may be given either as a sparse logical
+matrix (or a dummy matrix with values 0/1), or as a list of lists.
+In the matrix form, rows correspond to rows in \code{sensitive} (or \code{crossTable}
+if \code{sensitive} is not specified), and columns correspond to rows in
+\code{identifying} (or \code{crossTable} if \code{identifying} is not specified).
+In the list form, each list element specifies a set of relations by
+selecting rows from \code{identifying} and/or \code{sensitive} defined above. Each
+element may contain the components \code{identifying} and \code{sensitive}; omitted
+components default to all rows of the corresponding element. The full list
+jointly defines the relations to be excluded.}
 
 \item{\code{include_relations}}{As for \code{exclude_relations}, but defining the
-identifying–sensitive relations that are considered. Only relations marked
-as \code{TRUE} (or 1) are included; all others are ignored.}
+identifying–sensitive relations that are considered. Only the relations
+specified are included; all others are ignored.}
+
 }
 }
 \author{
