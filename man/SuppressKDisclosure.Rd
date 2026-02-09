@@ -15,7 +15,7 @@ SuppressKDisclosure(
   freqVar = NULL,
   targeting = default_targeting,
   identifying = NULL,
-  disclosive = NULL,
+  sensitive = NULL,
   print_frames = FALSE,
   ...,
   spec = PackageSpecs("kDisclosureSpec")
@@ -47,15 +47,15 @@ unspecified.}
 \item{freqVar}{name of the frequency variable in \code{data}}
 
 \item{targeting}{The mechanism underlying the interpretation of
-\code{identifying} and \code{disclosive}. See Details in \code{\link[=KDisclosurePrimary]{KDisclosurePrimary()}}.}
+\code{identifying} and \code{sensitive}. See Details in \code{\link[=KDisclosurePrimary]{KDisclosurePrimary()}}.}
 
 \item{identifying}{Specification of information that an intruder may already
-know. The specification is subject to the same requirements as \code{disclosive}
+know. The specification is subject to the same requirements as \code{sensitive}
 below. If not all variables are included, total codes for the missing
 variables are derived automatically. This requires that the overall total
 is included as an output row.}
 
-\item{disclosive}{Specification of information considered unacceptable to
+\item{sensitive}{Specification of information considered unacceptable to
 disclose. Either a character vector of variable names, or a named list with
 variable names as names and specified codes as values. The wildcard
 characters \code{*} and \verb{?}, as well as the exclusion operator \code{!}, may be used,
@@ -126,7 +126,7 @@ out3 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
 show_out(out3)
 
 
-### Examples with identifying and disclosive ###
+### Examples with identifying and sensitive ###
 
 mun_b <- SSBtools::SSBtoolsData("mun_accidents")
 mun_b$freq <- c(0,5,3,4,1,0,
@@ -135,18 +135,18 @@ mun_b$freq <- c(0,5,3,4,1,0,
                 0,0,0,0,0,0)
                 
 out_d <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
-                                 formula = ~mun*inj, disclosive= "inj")
+                                 formula = ~mun*inj, sensitive= "inj")
 show_out(out_d)                                                    
                 
 
 out_d1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
                               formula = ~mun*inj, mc_hierarchies = mc_dimlist,
-                              disclosive = list(mun =  "k3", inj = "injured"))
+                              sensitive = list(mun =  "k3", inj = "injured"))
 show_out(out_d1)                             
 
 out_d2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
                               formula = ~mun*inj, 
-                              disclosive = list(inj = "serious", mun = "k3"))
+                              sensitive = list(inj = "serious", mun = "k3"))
 show_out(out_d2)                         
 
 out_i1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
@@ -160,7 +160,7 @@ show_out(out_i2)
 
 # Same example as out_d, but with cells forced to be published, yielding unsafe table
 out_unsafe <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
-                                 formula = ~mun*inj, disclosive = "inj", 
+                                 formula = ~mun*inj, sensitive = "inj", 
                                  forced = c(12,14,15), output = "all",
                                  print_frames = TRUE)
 show_out(out_unsafe$publish)

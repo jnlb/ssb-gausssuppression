@@ -65,27 +65,27 @@ that may be extended after applying \code{mc_hierarchies}.
 as information that an intruder may already know. If omitted, it defaults
 to \code{crossTable}.}
 
-\item{\code{disclosive}}{A data frame containing selected rows from
+\item{\code{sensitive}}{A data frame containing selected rows from
 \code{crossTable}. If an intruder can infer membership in the cells represented
 by these rows, this is considered an unacceptable disclosure, subject to
-any further specification provided by \code{is_disclosive}. If omitted, it
+any further specification provided by \code{is_sensitive}. If omitted, it
 defaults to \code{crossTable}.}
 
-\item{\code{is_disclosive}}{A data frame with the same structure as
-\code{disclosive}, but with logical variables. It indicates which codes in
-\code{disclosive} are regarded as disclosive. When specified, disclosure is
+\item{\code{is_sensitive}}{A data frame with the same structure as
+\code{sensitive}, but with logical variables. It indicates which codes in
+\code{sensitive} are regarded as sensitive. When specified, disclosure is
 assessed by which codes within a revealed cell are disclosed. If omitted,
 it is equivalent to a data frame where all elements are \code{TRUE}.}
 
 \item{\code{exclude_relations}}{A sparse logical matrix (or a dummy matrix with
-values 0/1) defining identifying–disclosive relations that are ignored.
-Rows correspond to rows in \code{disclosive} (or \code{crossTable} if \code{disclosive} is
+values 0/1) defining identifying–sensitive relations that are ignored.
+Rows correspond to rows in \code{sensitive} (or \code{crossTable} if \code{sensitive} is
 not specified), and columns correspond to rows in \code{identifying} (or
 \code{crossTable} if \code{identifying} is not specified). Relations marked as \code{TRUE}
 (or 1) are excluded.}
 
 \item{\code{include_relations}}{As for \code{exclude_relations}, but defining the
-identifying–disclosive relations that are considered. Only relations marked
+identifying–sensitive relations that are considered. Only relations marked
 as \code{TRUE} (or 1) are included; all others are ignored.}
 }
 }

@@ -52,12 +52,12 @@ test_that("SuppressKDisclosure", {
   
   suppsums <- integer(0)
   
-  disclosive <- vector("list", 2)
-  disclosive[[2]] <- list(region = c("A", "C", "G"), main_income = c("pensions", "wages"))
+  sensitive <- vector("list", 2)
+  sensitive[[2]] <- list(region = c("A", "C", "G"), main_income = c("pensions", "wages"))
   for (extend0 in c(TRUE, FALSE)) {
     for (i in 1:2) {
       a <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 3, 
-                               extend0 = extend0, disclosive = disclosive[[i]],
+                               extend0 = extend0, sensitive = sensitive[[i]],
                                whenEmptyUnsuppressed = NULL,
                                printInc = printInc)
       suppsums <- c(suppsums, sum(a$suppressed))
@@ -71,7 +71,7 @@ test_that("SuppressKDisclosure", {
   mm <- SSBtools::ModelMatrix(d, dimVar = 1:4, crossTable = TRUE)
   
   targ <- default_targeting(crossTable = mm$crossTable, x = mm$modelMatrix, 
-                            disclosive = disclosive[[2]], 
+                            sensitive = sensitive[[2]], 
                             identifying = list(region = "!8", main_income = "*"))
   
   targ[[1]][10:11, 1] <- "99"   # to test matching
@@ -82,9 +82,9 @@ test_that("SuppressKDisclosure", {
                             targeting = targ, whenEmptyUnsuppressed = NULL,
                             printInc = printInc, print_frames = TRUE, output = "all")
   
-  me <- Matrix::Matrix(FALSE, nrow(targ$disclosive), nrow(targ$identifying))
+  me <- Matrix::Matrix(FALSE, nrow(targ$sensitive), nrow(targ$identifying))
   
-  me[targ$disclosive$region == "A" & targ$disclosive$main_income == "assistance", 
+  me[targ$sensitive$region == "A" & targ$sensitive$main_income == "assistance", 
      targ$identifying$region == "1" & targ$identifying$main_income ==  "Total"] <- TRUE
   
   

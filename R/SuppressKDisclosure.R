@@ -29,7 +29,7 @@
 #' @inheritParams default_targeting
 #'
 #' @param targeting The mechanism underlying the interpretation of
-#' `identifying` and `disclosive`. See Details in [KDisclosurePrimary()].
+#' `identifying` and `sensitive`. See Details in [KDisclosurePrimary()].
 #' 
 #' @param print_frames Logical. If TRUE, additional data frames are printed to
 #' the console. When `mc_hierarchies` is used, this includes a
@@ -84,7 +84,7 @@
 #' show_out(out3)
 #' 
 #' 
-#' ### Examples with identifying and disclosive ###
+#' ### Examples with identifying and sensitive ###
 #' 
 #' mun_b <- SSBtools::SSBtoolsData("mun_accidents")
 #' mun_b$freq <- c(0,5,3,4,1,0,
@@ -93,18 +93,18 @@
 #'                 0,0,0,0,0,0)
 #'                 
 #' out_d <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
-#'                                  formula = ~mun*inj, disclosive= "inj")
+#'                                  formula = ~mun*inj, sensitive= "inj")
 #' show_out(out_d)                                                    
 #'                 
 #' 
 #' out_d1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
 #'                               formula = ~mun*inj, mc_hierarchies = mc_dimlist,
-#'                               disclosive = list(mun =  "k3", inj = "injured"))
+#'                               sensitive = list(mun =  "k3", inj = "injured"))
 #' show_out(out_d1)                             
 #' 
 #' out_d2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
 #'                               formula = ~mun*inj, 
-#'                               disclosive = list(inj = "serious", mun = "k3"))
+#'                               sensitive = list(inj = "serious", mun = "k3"))
 #' show_out(out_d2)                         
 #'
 #' out_i1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
@@ -118,7 +118,7 @@
 #'
 #' # Same example as out_d, but with cells forced to be published, yielding unsafe table
 #' out_unsafe <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
-#'                                  formula = ~mun*inj, disclosive = "inj", 
+#'                                  formula = ~mun*inj, sensitive = "inj", 
 #'                                  forced = c(12,14,15), output = "all",
 #'                                  print_frames = TRUE)
 #' show_out(out_unsafe$publish)
@@ -136,7 +136,7 @@ SuppressKDisclosure <- function(data,
                                 freqVar = NULL,
                                 targeting = default_targeting,
                                 identifying = NULL, 
-                                disclosive = NULL,
+                                sensitive = NULL,
                                 print_frames = FALSE,
                                 ...,
                                 spec = PackageSpecs("kDisclosureSpec")) {
@@ -160,7 +160,7 @@ SuppressKDisclosure <- function(data,
     spec = spec,
     targeting = targeting,
     identifying = identifying,
-    disclosive = disclosive,
+    sensitive = sensitive,
     print_frames = print_frames,
     ...
   )
@@ -182,27 +182,27 @@ SuppressKDisclosure <- function(data,
 #'   as information that an intruder may already know. If omitted, it defaults
 #'   to `crossTable`.}
 #'
-#'   \item{`disclosive`}{A data frame containing selected rows from
+#'   \item{`sensitive`}{A data frame containing selected rows from
 #'   `crossTable`. If an intruder can infer membership in the cells represented
 #'   by these rows, this is considered an unacceptable disclosure, subject to
-#'   any further specification provided by `is_disclosive`. If omitted, it
+#'   any further specification provided by `is_sensitive`. If omitted, it
 #'   defaults to `crossTable`.}
 #'
-#'   \item{`is_disclosive`}{A data frame with the same structure as
-#'   `disclosive`, but with logical variables. It indicates which codes in
-#'   `disclosive` are regarded as disclosive. When specified, disclosure is
+#'   \item{`is_sensitive`}{A data frame with the same structure as
+#'   `sensitive`, but with logical variables. It indicates which codes in
+#'   `sensitive` are regarded as sensitive. When specified, disclosure is
 #'   assessed by which codes within a revealed cell are disclosed. If omitted,
 #'   it is equivalent to a data frame where all elements are `TRUE`.}
 #'   
 #'   \item{`exclude_relations`}{A sparse logical matrix (or a dummy matrix with
-#'   values 0/1) defining identifying–disclosive relations that are ignored.
-#'   Rows correspond to rows in `disclosive` (or `crossTable` if `disclosive` is
+#'   values 0/1) defining identifying–sensitive relations that are ignored.
+#'   Rows correspond to rows in `sensitive` (or `crossTable` if `sensitive` is
 #'   not specified), and columns correspond to rows in `identifying` (or
 #'   `crossTable` if `identifying` is not specified). Relations marked as `TRUE`
 #'   (or 1) are excluded.}
 #'
 #'   \item{`include_relations`}{As for `exclude_relations`, but defining the
-#'   identifying–disclosive relations that are considered. Only relations marked
+#'   identifying–sensitive relations that are considered. Only relations marked
 #'   as `TRUE` (or 1) are included; all others are ignored.}
 #' }
 #'
@@ -265,35 +265,35 @@ KDisclosurePrimary <- function(data,
   }
   
   identifying <- targeting$identifying
-  disclosive  <- targeting$disclosive
-  is_disclosive <- targeting$is_disclosive
+  sensitive  <- targeting$sensitive
+  is_sensitive <- targeting$is_sensitive
   exclude_relations <- targeting$exclude_relations
   include_relations <- targeting$include_relations
 
     
-  use_is_disclosive <- !is.null(is_disclosive)
+  use_is_sensitive <- !is.null(is_sensitive)
   
-  if (use_is_disclosive | !is.null(identifying) | !is.null(disclosive) | 
+  if (use_is_sensitive | !is.null(identifying) | !is.null(sensitive) | 
       !is.null(exclude_relations) | !is.null(include_relations)) {
     if (is.null(identifying)) {
       identifying <- crossTable
     }
-    if (is.null(disclosive)) {
-      disclosive <- crossTable
+    if (is.null(sensitive)) {
+      sensitive <- crossTable
     }
   }
     
-  if (use_is_disclosive) {
-    validate_is_disclosive(is_disclosive, disclosive)
+  if (use_is_sensitive) {
+    validate_is_sensitive(is_sensitive, sensitive)
     
-    if (isTRUE(all(is_disclosive))) {
-      is_disclosive <- NULL
-      use_is_disclosive <- FALSE
+    if (isTRUE(all(is_sensitive))) {
+      is_sensitive <- NULL
+      use_is_sensitive <- FALSE
     }
   }
   
   
-  if (!is.null(identifying)) {   # from above !is.null(disclosive) when !is.null(identifying)
+  if (!is.null(identifying)) {   # from above !is.null(sensitive) when !is.null(identifying)
     
     # Match identifying
     ma <- SSBtools::Match(identifying, crossTable)
@@ -301,7 +301,7 @@ KDisclosurePrimary <- function(data,
     exclude_relations <- exclude_relations[, !is.na(ma) ,drop = FALSE]
     include_relations <- include_relations[, !is.na(ma) ,drop = FALSE]
     y <- x[, ma[!is.na(ma)], drop = FALSE]
-    if (!use_is_disclosive) {
+    if (!use_is_sensitive) {
       sel <- !SSBtools::DummyDuplicated(y, rnd = TRUE)
       y <- y[, sel, drop = FALSE]
       identifying <- identifying[sel, ]
@@ -309,19 +309,19 @@ KDisclosurePrimary <- function(data,
       include_relations <- include_relations[, sel,drop = FALSE]
     }
     
-    # Match disclosive
-    ma <- SSBtools::Match(disclosive, crossTable)
-    disclosive <- disclosive[!is.na(ma), ]
+    # Match sensitive
+    ma <- SSBtools::Match(sensitive, crossTable)
+    sensitive <- sensitive[!is.na(ma), ]
     exclude_relations <- exclude_relations[!is.na(ma), ,drop = FALSE]
     include_relations <- include_relations[!is.na(ma), ,drop = FALSE]
-    if (use_is_disclosive) {
-      is_disclosive <- is_disclosive[!is.na(ma), ]
+    if (use_is_sensitive) {
+      is_sensitive <- is_sensitive[!is.na(ma), ]
     }
     x <- x[, ma[!is.na(ma)], drop = FALSE]
-    if (!use_is_disclosive) {
+    if (!use_is_sensitive) {
       sel <- !SSBtools::DummyDuplicated(x, rnd = TRUE)
       x <- x[, sel, drop = FALSE]
-      disclosive <- disclosive[sel, ]
+      sensitive <- sensitive[sel, ]
       exclude_relations <- exclude_relations[sel, ,drop = FALSE]
       include_relations <- include_relations[sel, ,drop = FALSE]
     }
@@ -335,8 +335,8 @@ KDisclosurePrimary <- function(data,
     include_relations <- include_relations[sel, sel, drop = FALSE]
   }
   
-  if (use_is_disclosive) {  # Extra check after modifications  
-    validate_is_disclosive(is_disclosive, disclosive)
+  if (use_is_sensitive) {  # Extra check after modifications  
+    validate_is_sensitive(is_sensitive, sensitive)
   }
   
   FindDifferenceCells(
@@ -348,8 +348,8 @@ KDisclosurePrimary <- function(data,
     upper_bound = upper_bound,
     crossTable = crossTable,
     identifying = identifying,
-    disclosive = disclosive,
-    is_disclosive = is_disclosive,
+    sensitive = sensitive,
+    is_sensitive = is_sensitive,
     exclude_relations  = exclude_relations,
     include_relations = include_relations,
     print_frames = print_frames
@@ -366,8 +366,8 @@ FindDifferenceCells <- function(x,
                                 upper_bound = Inf,
                                 crossTable,
                                 identifying,
-                                disclosive,
-                                is_disclosive,
+                                sensitive,
+                                is_sensitive,
                                 exclude_relations,
                                 include_relations,
                                 print_frames = FALSE
@@ -411,38 +411,38 @@ FindDifferenceCells <- function(x,
   parent <- parent[disclosures]
   child <- child[disclosures]
   
-  use_is_disclosive <- !is.null(is_disclosive)
+  use_is_sensitive <- !is.null(is_sensitive)
   
   if (is.null(identifying)) {
     identifying <- crossTable
   }
-  if (is.null(disclosive)) {
-    disclosive <- crossTable
+  if (is.null(sensitive)) {
+    sensitive <- crossTable
   }
   
   identifying <- identifying[parent, , drop = FALSE]
-  disclosive <- disclosive[child, , drop = FALSE]
+  sensitive <- sensitive[child, , drop = FALSE]
   
-  if (use_is_disclosive) {
-    is_disclosive <- as.matrix(is_disclosive)
-    is_disclosive <- is_disclosive[child, , drop = FALSE]
+  if (use_is_sensitive) {
+    is_sensitive <- as.matrix(is_sensitive)
+    is_sensitive <- is_sensitive[child, , drop = FALSE]
     
-    same_codes <- identifying == disclosive
-    same_codes[!is_disclosive] <- TRUE
+    same_codes <- identifying == sensitive
+    same_codes[!is_sensitive] <- TRUE
     same_row <- rowSums(!same_codes) == 0
     
     parent <- parent[!same_row]
     child <- child[!same_row]
     
     identifying <- identifying[!same_row, , drop = FALSE]
-    disclosive <- disclosive[!same_row, , drop = FALSE]
+    sensitive <- sensitive[!same_row, , drop = FALSE]
     freq_diff <- freq_diff[!same_row]
   }
   
   diff_matrix <- drop0(y[, parent, drop = FALSE] - 
                        x[, child, drop = FALSE])
   
-  diff_cells <- difference_cells(identifying, disclosive)
+  diff_cells <- difference_cells(identifying, sensitive)
   colnames(diff_matrix) <- apply(diff_cells , 1 , paste , collapse = ":" )
   
   if (print_frames) {
@@ -463,28 +463,28 @@ FindDifferenceCells <- function(x,
 
 
 # Written by ChatGPT
-validate_is_disclosive <- function(is_disclosive, disclosive) {
-  if (!is.data.frame(is_disclosive)) {
-    stop("`is_disclosive` must be a data frame.", call. = FALSE)
+validate_is_sensitive <- function(is_sensitive, sensitive) {
+  if (!is.data.frame(is_sensitive)) {
+    stop("`is_sensitive` must be a data frame.", call. = FALSE)
   }
   
-  if (!identical(dim(is_disclosive), dim(disclosive))) {
+  if (!identical(dim(is_sensitive), dim(sensitive))) {
     stop(
-      "`is_disclosive` must have the same dimensions as `disclosive`.",
+      "`is_sensitive` must have the same dimensions as `sensitive`.",
       call. = FALSE
     )
   }
   
-  if (!identical(names(is_disclosive), names(disclosive))) {
+  if (!identical(names(is_sensitive), names(sensitive))) {
     stop(
-      "`is_disclosive` must have the same variable names as `disclosive`.",
+      "`is_sensitive` must have the same variable names as `sensitive`.",
       call. = FALSE
     )
   }
   
-  if (!all(vapply(is_disclosive, is.logical, logical(1)))) {
+  if (!all(vapply(is_sensitive, is.logical, logical(1)))) {
     stop(
-      "All variables in `is_disclosive` must be logical.",
+      "All variables in `is_sensitive` must be logical.",
       call. = FALSE
     )
   }
@@ -494,9 +494,9 @@ validate_is_disclosive <- function(is_disclosive, disclosive) {
 
 
 
-difference_cells <- function(identifying, disclosive) {
-  r <- identifying != disclosive
-  identifying[r] <- paste(identifying[r], disclosive[r], sep = "-")
+difference_cells <- function(identifying, sensitive) {
+  r <- identifying != sensitive
+  identifying[r] <- paste(identifying[r], sensitive[r], sep = "-")
   rownames(identifying) <- NULL
   identifying
 }
@@ -517,12 +517,12 @@ difference_cells <- function(identifying, disclosive) {
 #' `mc_hierarchies`.
 #' 
 #' @param identifying Specification of information that an intruder may already
-#' know. The specification is subject to the same requirements as `disclosive`
+#' know. The specification is subject to the same requirements as `sensitive`
 #' below. If not all variables are included, total codes for the missing
 #' variables are derived automatically. This requires that the overall total
 #' is included as an output row.
 #'
-#' @param disclosive Specification of information considered unacceptable to
+#' @param sensitive Specification of information considered unacceptable to
 #' disclose. Either a character vector of variable names, or a named list with
 #' variable names as names and specified codes as values. The wildcard
 #' characters `*` and `?`, as well as the exclusion operator `!`, may be used,
@@ -544,13 +544,13 @@ difference_cells <- function(identifying, disclosive) {
 #' 
 #' default_targeting(crossTable, x)  # just NULL 
 #' 
-#' # geo identifying and age disclosive (age sensitive variable)
+#' # geo identifying and age sensitive (age sensitive variable)
 #' a2 <- default_targeting(crossTable, x, 
 #'                         identifying = "geo", 
-#'                         disclosive = "age")
+#'                         sensitive = "age")
 #' a1 <- default_targeting(crossTable, x, 
 #'                         identifying = list(age = "Total", geo = "*"), 
-#'                         disclosive = list(age = "*")) 
+#'                         sensitive = list(age = "*")) 
 #' identical(a1, a2)
 #' a1                         
 #'                   
@@ -559,22 +559,22 @@ difference_cells <- function(identifying, disclosive) {
 #' # But ok to disclose 'Spain' with 'EU' known
 #' # and also ok to disclose 'Spain' in other table cells without 'EU' as marginal  
 #' default_targeting(crossTable, x, 
-#'                   disclosive = list(geo = c("Portugal", "EU")))
+#'                   sensitive = list(geo = c("Portugal", "EU")))
 #'                   
 #' # As above but now also ok to disclose 'Portugal' from 'EU' known,
 #' # since protection only considers 'age' identifying.                   
 #' default_targeting(crossTable, x, 
 #'                   identifying = "age",
-#'                   disclosive = list(geo = c("Portugal", "EU")))                 
+#'                   sensitive = list(geo = c("Portugal", "EU")))                 
 #' 
 default_targeting <- function(crossTable, x, 
-                              identifying = NULL, disclosive = NULL, ...) {
+                              identifying = NULL, sensitive = NULL, ...) {
   
-  if (is.null(identifying) & is.null(disclosive)) {
+  if (is.null(identifying) & is.null(sensitive)) {
     return(NULL)
   }
   
-  check_targeting_lists(crossTable, identifying, disclosive)
+  check_targeting_lists(crossTable, identifying, sensitive)
   
   output <- NULL
   
@@ -606,44 +606,44 @@ default_targeting <- function(crossTable, x,
     rownames(output$identifying) <- NULL
   } 
   
-  if (!is.null(disclosive)) {
-    if (is.character(disclosive)) {
-      disclosive <- setNames(rep(list("*"),length(disclosive)), disclosive)
+  if (!is.null(sensitive)) {
+    if (is.character(sensitive)) {
+      sensitive <- setNames(rep(list("*"),length(sensitive)), sensitive)
     }
     
-    is_disclosive <- as.data.frame(matrix(FALSE, nrow(crossTable), ncol(crossTable)))
-    names(is_disclosive) <- names(crossTable)
+    is_sensitive <- as.data.frame(matrix(FALSE, nrow(crossTable), ncol(crossTable)))
+    names(is_sensitive) <- names(crossTable)
     
-    for (i in seq_along(disclosive)) {
-      name_i <- names(disclosive)[i]
-      is_disclosive[[name_i]] <- SSBtools::WildcardGlobbing(crossTable[name_i], as.data.frame(disclosive[i]))
+    for (i in seq_along(sensitive)) {
+      name_i <- names(sensitive)[i]
+      is_sensitive[[name_i]] <- SSBtools::WildcardGlobbing(crossTable[name_i], as.data.frame(sensitive[i]))
     }
     
     if (is.null(tot_code)) {
       tot_code <- FindTotCode2(x, crossTable)
     }
     
-    any_disclosive <- rowSums(is_disclosive) != 0
-    output$disclosive <- crossTable[any_disclosive, , drop = FALSE]
-    output$is_disclosive <- is_disclosive[any_disclosive, , drop = FALSE]
+    any_sensitive <- rowSums(is_sensitive) != 0
+    output$sensitive <- crossTable[any_sensitive, , drop = FALSE]
+    output$is_sensitive <- is_sensitive[any_sensitive, , drop = FALSE]
     
     
     # Remove tot-rows if possible (not important)
     if (is.null(tot_code)) {
       tot_code <- FindTotCode2(x, crossTable)
     }
-    if(!any(sapply(tot_code[names(disclosive)], length) == 0)){
-      dis_tot <- matrix(FALSE, nrow(output$disclosive), length(disclosive))
-      for (i in seq_along(disclosive)) {
-        name_i <- names(disclosive)[i]
-        dis_tot[,i] <- output$disclosive[[name_i]] %in% tot_code[i]
+    if(!any(sapply(tot_code[names(sensitive)], length) == 0)){
+      dis_tot <- matrix(FALSE, nrow(output$sensitive), length(sensitive))
+      for (i in seq_along(sensitive)) {
+        name_i <- names(sensitive)[i]
+        dis_tot[,i] <- output$sensitive[[name_i]] %in% tot_code[i]
       }
       ok_rows <- rowSums(!dis_tot) != 0
-      output$disclosive <- output$disclosive[ok_rows, , drop = FALSE]
-      output$is_disclosive <- output$is_disclosive[ok_rows, , drop = FALSE]
+      output$sensitive <- output$sensitive[ok_rows, , drop = FALSE]
+      output$is_sensitive <- output$is_sensitive[ok_rows, , drop = FALSE]
     }
-    rownames(output$disclosive) <- NULL
-    rownames(output$is_disclosive) <- NULL
+    rownames(output$sensitive) <- NULL
+    rownames(output$is_sensitive) <- NULL
   } 
   
   output
@@ -652,7 +652,7 @@ default_targeting <- function(crossTable, x,
 
 
 # Written by ChatGPT
-check_targeting_lists <- function(crossTable, identifying = NULL, disclosive = NULL) {
+check_targeting_lists <- function(crossTable, identifying = NULL, sensitive = NULL) {
   
   ct_names <- names(crossTable)
   
@@ -695,7 +695,7 @@ check_targeting_lists <- function(crossTable, identifying = NULL, disclosive = N
   }
   
   check_spec(identifying, "identifying")
-  check_spec(disclosive,  "disclosive")
+  check_spec(sensitive,  "sensitive")
   
   invisible(TRUE)
 }

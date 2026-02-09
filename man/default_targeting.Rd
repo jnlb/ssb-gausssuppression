@@ -4,7 +4,7 @@
 \alias{default_targeting}
 \title{Default \code{targeting} function for SuppressKDisclosure()}
 \usage{
-default_targeting(crossTable, x, identifying = NULL, disclosive = NULL, ...)
+default_targeting(crossTable, x, identifying = NULL, sensitive = NULL, ...)
 }
 \arguments{
 \item{crossTable}{A \code{crossTable}, possibly extended after applying
@@ -14,12 +14,12 @@ default_targeting(crossTable, x, identifying = NULL, disclosive = NULL, ...)
 \code{mc_hierarchies}.}
 
 \item{identifying}{Specification of information that an intruder may already
-know. The specification is subject to the same requirements as \code{disclosive}
+know. The specification is subject to the same requirements as \code{sensitive}
 below. If not all variables are included, total codes for the missing
 variables are derived automatically. This requires that the overall total
 is included as an output row.}
 
-\item{disclosive}{Specification of information considered unacceptable to
+\item{sensitive}{Specification of information considered unacceptable to
 disclose. Either a character vector of variable names, or a named list with
 variable names as names and specified codes as values. The wildcard
 characters \code{*} and \verb{?}, as well as the exclusion operator \code{!}, may be used,
@@ -44,13 +44,13 @@ x <- mm$modelMatrix
 
 default_targeting(crossTable, x)  # just NULL 
 
-# geo identifying and age disclosive (age sensitive variable)
+# geo identifying and age sensitive (age sensitive variable)
 a2 <- default_targeting(crossTable, x, 
                         identifying = "geo", 
-                        disclosive = "age")
+                        sensitive = "age")
 a1 <- default_targeting(crossTable, x, 
                         identifying = list(age = "Total", geo = "*"), 
-                        disclosive = list(age = "*")) 
+                        sensitive = list(age = "*")) 
 identical(a1, a2)
 a1                         
                   
@@ -59,12 +59,12 @@ a1
 # But ok to disclose 'Spain' with 'EU' known
 # and also ok to disclose 'Spain' in other table cells without 'EU' as marginal  
 default_targeting(crossTable, x, 
-                  disclosive = list(geo = c("Portugal", "EU")))
+                  sensitive = list(geo = c("Portugal", "EU")))
                   
 # As above but now also ok to disclose 'Portugal' from 'EU' known,
 # since protection only considers 'age' identifying.                   
 default_targeting(crossTable, x, 
                   identifying = "age",
-                  disclosive = list(geo = c("Portugal", "EU")))                 
+                  sensitive = list(geo = c("Portugal", "EU")))                 
 
 }
