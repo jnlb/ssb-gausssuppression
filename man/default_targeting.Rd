@@ -4,7 +4,15 @@
 \alias{default_targeting}
 \title{Default \code{targeting} function for SuppressKDisclosure()}
 \usage{
-default_targeting(crossTable, x, identifying = NULL, sensitive = NULL, ...)
+default_targeting(
+  crossTable,
+  x,
+  identifying = NULL,
+  sensitive = NULL,
+  targeting_include = NULL,
+  targeting_exclude = NULL,
+  ...
+)
 }
 \arguments{
 \item{crossTable}{A \code{crossTable}, possibly extended after applying
@@ -24,6 +32,10 @@ disclose. Either a character vector of variable names, or a named list with
 variable names as names and specified codes as values. The wildcard
 characters \code{*} and \verb{?}, as well as the exclusion operator \code{!}, may be used,
 since \code{\link[SSBtools:WildcardGlobbing]{SSBtools::WildcardGlobbing()}} is applied.}
+
+\item{targeting_include}{targeting_include}
+
+\item{targeting_exclude}{targeting_exclude}
 
 \item{...}{Unused parameters.}
 }

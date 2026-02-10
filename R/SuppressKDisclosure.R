@@ -276,7 +276,19 @@ KDisclosurePrimary <- function(data,
   is_sensitive <- targeting$is_sensitive
   exclude_relations <- targeting$exclude_relations
   include_relations <- targeting$include_relations
-
+  
+  if (is.list(exclude_relations)) {
+    targeting_exclude <- exclude_relations
+    exclude_relations <- NULL
+  } else {
+    targeting_exclude <- NULL
+  }
+  if (is.list(include_relations)) {
+    targeting_include <- include_relations
+    include_relations <- NULL
+  } else {
+    targeting_include <- NULL
+  }
     
   use_is_sensitive <- !is.null(is_sensitive)
   
@@ -359,6 +371,8 @@ KDisclosurePrimary <- function(data,
     is_sensitive = is_sensitive,
     exclude_relations  = exclude_relations,
     include_relations = include_relations,
+    targeting_exclude = targeting_exclude, 
+    targeting_include = targeting_include,
     print_frames = print_frames
   )
 }
@@ -377,6 +391,8 @@ FindDifferenceCells <- function(x,
                                 is_sensitive,
                                 exclude_relations,
                                 include_relations,
+                                targeting_exclude,
+                                targeting_include,
                                 print_frames = FALSE
                                 ) {
   
@@ -446,6 +462,45 @@ FindDifferenceCells <- function(x,
     freq_diff <- freq_diff[!same_row]
   }
   
+  if (!is.null(targeting_exclude) | !is.null(targeting_include)) {
+    
+    include <- rep(TRUE, length(parent))
+    
+    if (!is.null(targeting_include)) {
+      include <- rep(FALSE, length(parent))
+      for (i in seq_along(targeting_include)) {
+        sel_i <- identifying_sensitive_selection(
+          sel_identifying = targeting_include[[i]]$identifying, 
+          sel_sensitive = targeting_include[[i]]$sensitive, 
+          identifying = identifying, 
+          sensitive = sensitive)
+        include <- include | sel_i
+      }
+    } else {
+      include <- rep(TRUE, length(parent))
+    }
+    
+    if (!is.null(targeting_exclude)) {
+      for (i in seq_along(targeting_exclude)) {
+        sel_i <- identifying_sensitive_selection(
+          sel_identifying = targeting_exclude[[i]]$identifying, 
+          sel_sensitive = targeting_exclude[[i]]$sensitive, 
+          identifying = identifying, 
+          sensitive = sensitive)
+        include <- include & sel_i
+      }
+    }
+    
+    parent <- parent[include]
+    child <- child[include]
+    identifying <- identifying[include, , drop = FALSE]
+    sensitive <- sensitive[include, , drop = FALSE]
+    freq_diff <- freq_diff[include]
+  }
+  
+  
+
+  
   diff_matrix <- drop0(y[, parent, drop = FALSE] - 
                        x[, child, drop = FALSE])
   
@@ -464,7 +519,22 @@ FindDifferenceCells <- function(x,
 }
 
 
-
+identifying_sensitive_selection <- function(sel_identifying, sel_sensitive, 
+                                            identifying, sensitive) {
+  if (!is.null(sel_identifying)) {
+    ma_identifying <- !is.na(SSBtools::Match(identifying, sel_identifying))
+  }
+  if (!is.null(sel_sensitive)) {
+    ma_sensitive <- !is.na(SSBtools::Match(sensitive, sel_sensitive))
+  }
+  if (is.null(sel_identifying)) {
+    return(ma_sensitive)
+  }
+  if (is.null(sel_identifying)) {
+    return(ma_identifying)
+  }
+  ma_identifying & ma_sensitive
+}
 
 
 
@@ -535,6 +605,9 @@ difference_cells <- function(identifying, sensitive) {
 #' characters `*` and `?`, as well as the exclusion operator `!`, may be used,
 #' since [SSBtools::WildcardGlobbing()] is applied.
 #' 
+#' @param  targeting_include targeting_include
+#' @param  targeting_exclude targeting_exclude
+#' 
 #' @param ... Unused parameters.
 #'
 #' @returns
@@ -575,15 +648,42 @@ difference_cells <- function(identifying, sensitive) {
 #'                   sensitive = list(geo = c("Portugal", "EU")))                 
 #' 
 default_targeting <- function(crossTable, x, 
-                              identifying = NULL, sensitive = NULL, ...) {
+                              identifying = NULL, sensitive = NULL, 
+                              targeting_include = NULL,
+                              targeting_exclude = NULL,
+                              ...) {
+  
+  if (!is.null(targeting_include)) {
+    if (!is.null(identifying) | !is.null(sensitive)) {
+      targeting_include <- c(list(identifying = identifying, sensitive = sensitive), targeting_include)
+    }
+    d <- include_via_list(crossTable = crossTable, x = x, 
+                          via_list = targeting_include, ...)
+    identifying <- d$identifying
+    sensitive <- d$sensitive
+  }
+  
+  if (!is.null(targeting_exclude)) {
+    exclude_relations <- exclude_via_list(crossTable = crossTable, x = x, 
+                                          identifying = identifying, 
+                                          sensitive = sensitive, 
+                                          via_list = targeting_exclude, ...)
+  } else {
+    exclude_relations <- NULL
+  }
+  
+  if (!is.null(targeting_include)) {
+    d$exclude_relations <- exclude_relations
+    return(d)
+  }
   
   if (is.null(identifying) & is.null(sensitive)) {
     return(NULL)
   }
   
-  check_targeting_lists(crossTable, identifying, sensitive)
-  
   output <- NULL
+  
+  check_targeting_lists(crossTable, identifying, sensitive)
   
   tot_code <- NULL
   
@@ -651,11 +751,78 @@ default_targeting <- function(crossTable, x,
     }
     rownames(output$sensitive) <- NULL
     rownames(output$is_sensitive) <- NULL
-  } 
+  }
+  
+  if (!is.null(targeting_exclude)) {
+    output$exclude_relations <- exclude_relations
+  }
   
   output
 }
 
+
+include_via_list <- function(crossTable, x, via_list, ...) {
+  
+  identifying <- NULL
+  sensitive <- NULL
+  is_sensitive <- NULL
+  
+  for (i in seq_along(via_list)) {
+    d <- default_targeting(crossTable = crossTable, 
+                           x = x, 
+                           identifying = via_list[[i]]$identifying, 
+                           sensitive = via_list[[i]]$sensitive, ...)
+    
+    if (!is.null(d$identifying)) {
+      ma <- SSBtools::Match(d$identifying, identifying)
+      identifying <- rbind(identifying, d$identifying[is.na(ma), , drop = FALSE])
+      via_list[[i]]$identifying <- d$identifying
+    }
+    
+    if (!is.null(d$sensitive)) {
+      ma <- SSBtools::Match(d$sensitive, sensitive)
+      if (!is.null(d$is_sensitive)) {
+        if (is.null(is_sensitive) & !is.null(sensitive)) {
+          is_sensitive <- as.data.frame(matrix(TRUE, nrow(sensitive), ncol(sensitive)))
+          names(is_sensitive) <- names(sensitive)
+        } else {
+          if (any(!is.na(ma))) {
+            is_sensitive[ma[!is.na(ma)], ] <- 
+              is_sensitive[ma[!is.na(ma)], , drop = FALSE] | 
+              d$is_sensitive[!is.na(ma), , drop = FALSE]
+          }
+        }
+        is_sensitive <- rbind(is_sensitive, d$is_sensitive[is.na(ma), , drop = FALSE])
+      }
+      sensitive <- rbind(sensitive, d$sensitive[is.na(ma), , drop = FALSE])
+    }
+    via_list[[i]]$sensitive <- d$sensitive
+  }
+  
+  list(identifying = identifying, 
+       sensitive = sensitive, 
+       is_sensitive = is_sensitive, 
+       include_relations = via_list)
+  
+}
+
+exclude_via_list <- function(crossTable, x, identifying, sensitive, via_list, ...) {
+  for (i in seq_along(via_list)) {
+    d <- default_targeting(crossTable = crossTable, 
+                           x = x, 
+                           identifying = via_list[[i]]$identifying, 
+                           sensitive = via_list[[i]]$sensitive, ...)
+    if (!is.null(d$identifying)) {
+      ma <- SSBtools::Match(d$identifying, identifying)
+      via_list[[i]]$identifying <- d$identifying[!is.na(ma), , drop = FALSE]
+    }
+    if (!is.null(d$sensitive)) {
+      ma <- SSBtools::Match(d$sensitive, sensitive)
+      via_list[[i]]$sensitive <- d$sensitive[!is.na(ma), , drop = FALSE]
+    }
+  }
+  via_list
+}
 
 
 # Written by ChatGPT
