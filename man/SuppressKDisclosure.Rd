@@ -53,13 +53,15 @@ unspecified.}
 know. The specification is subject to the same requirements as \code{sensitive}
 below. If not all variables are included, total codes for the missing
 variables are derived automatically. This requires that the overall total
-is included as an output row.}
+is included as an output row.
+DESCRIBE data.frame option}
 
 \item{sensitive}{Specification of information considered unacceptable to
 disclose. Either a character vector of variable names, or a named list with
 variable names as names and specified codes as values. The wildcard
 characters \code{*} and \verb{?}, as well as the exclusion operator \code{!}, may be used,
-since \code{\link[SSBtools:WildcardGlobbing]{SSBtools::WildcardGlobbing()}} is applied.}
+since \code{\link[SSBtools:WildcardGlobbing]{SSBtools::WildcardGlobbing()}} is applied.
+DESCRIBE data.frame option}
 
 \item{print_frames}{Logical. If TRUE, additional data frames are printed to
 the console. When \code{mc_hierarchies} is used, this includes a

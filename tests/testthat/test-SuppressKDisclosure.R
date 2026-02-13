@@ -1,5 +1,6 @@
 
 printInc <- FALSE
+print_frames <- FALSE
 
 options(GaussSuppression.action_unused_dots = "abort")
 
@@ -100,6 +101,50 @@ test_that("SuppressKDisclosure", {
   expect_identical(c(ncol(a2$xExtraPrimary), ncol(a1$xExtraPrimary)), 23:24)
   
   
+  targ$targeting_exclude <- list(
+    list(sensitive = list(region = "A", main_income = "assistance"),
+         identifying = list(region = "1", main_income = "Total"))
+  )
   
+  a3 <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 55, 
+                            extend0 = FALSE,
+                            sensitive = sensitive[[2]], 
+                            identifying = list(region = "!8", main_income = "*"),
+                            whenEmptyUnsuppressed = NULL,
+                            printInc = printInc, print_frames = TRUE, 
+                            output = "all")
+  
+  identical(as.vector(table(SSBtools::DummyDuplicated(cbind(a1$xExtraPrimary, a3$xExtraPrimary), rnd = TRUE))),
+            c(24L, 24L))
+  
+  
+  a4 <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 55, 
+                            extend0 = FALSE,
+                            sensitive = sensitive[[2]], 
+                            identifying = list(region = "!8", main_income = "*"),
+                            targeting_exclude = list(
+                              list(sensitive = list(region = "A", main_income = "assistance"),
+                                   identifying = list(region = "1", main_income = "Total"))),
+                            whenEmptyUnsuppressed = NULL,
+                            printInc = printInc, print_frames = TRUE, 
+                            output = "all")
+  
+  identical(as.vector(table(SSBtools::DummyDuplicated(cbind(a2$xExtraPrimary, a4$xExtraPrimary), rnd = TRUE))),
+            c(23L, 22L))
+  
+  
+  a5 <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 55, 
+                            extend0 = FALSE,
+                            sensitive = sensitive[[2]], 
+                            identifying = list(region = "!8", main_income = "*"),
+                            targeting_exclude = list(
+                              list(sensitive = data.frame(region = "A", main_income = "assistance"),
+                                   identifying = data.frame(region = "1", main_income = "Total"))),
+                            whenEmptyUnsuppressed = NULL,
+                            printInc = printInc, print_frames = TRUE, 
+                            output = "all")
+  
+  identical(as.vector(table(SSBtools::DummyDuplicated(cbind(a2$xExtraPrimary, a5$xExtraPrimary), rnd = TRUE))),
+            c(23L, 23L))
   
 })

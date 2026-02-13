@@ -598,12 +598,14 @@ difference_cells <- function(identifying, sensitive) {
 #' below. If not all variables are included, total codes for the missing
 #' variables are derived automatically. This requires that the overall total
 #' is included as an output row.
+#' DESCRIBE data.frame option
 #'
 #' @param sensitive Specification of information considered unacceptable to
 #' disclose. Either a character vector of variable names, or a named list with
 #' variable names as names and specified codes as values. The wildcard
 #' characters `*` and `?`, as well as the exclusion operator `!`, may be used,
 #' since [SSBtools::WildcardGlobbing()] is applied.
+#' DESCRIBE data.frame option
 #' 
 #' @param  targeting_include targeting_include
 #' @param  targeting_exclude targeting_exclude
@@ -699,10 +701,15 @@ default_targeting <- function(crossTable, x,
       identifying <- c(identifying, missing_identifying)
     }
     
-    identifying_rows <- rep(TRUE, nrow(crossTable))
-    for (i in seq_along(identifying)) {
-      name_i <- names(identifying)[i]
-      identifying_rows <- identifying_rows & SSBtools::WildcardGlobbing(crossTable[name_i], as.data.frame(identifying[i]))
+    
+    if (is.data.frame(identifying)) {
+      identifying_rows <- SSBtools::WildcardGlobbing(crossTable, identifying)
+    } else {
+      identifying_rows <- rep(TRUE, nrow(crossTable))
+      for (i in seq_along(identifying)) {
+        name_i <- names(identifying)[i]
+        identifying_rows <- identifying_rows & SSBtools::WildcardGlobbing(crossTable[name_i], as.data.frame(identifying[i]))
+      }
     }
     output$identifying <- crossTable[identifying_rows, , drop = FALSE]
     rownames(output$identifying) <- NULL
@@ -716,9 +723,16 @@ default_targeting <- function(crossTable, x,
     is_sensitive <- as.data.frame(matrix(FALSE, nrow(crossTable), ncol(crossTable)))
     names(is_sensitive) <- names(crossTable)
     
+    if (is.data.frame(sensitive)) {
+      sensitive_rows <- SSBtools::WildcardGlobbing(crossTable, sensitive)
+    }
     for (i in seq_along(sensitive)) {
       name_i <- names(sensitive)[i]
-      is_sensitive[[name_i]] <- SSBtools::WildcardGlobbing(crossTable[name_i], as.data.frame(sensitive[i]))
+      if (is.data.frame(sensitive)) {
+        is_sensitive[[name_i]] <- sensitive_rows
+      } else {
+        is_sensitive[[name_i]] <- SSBtools::WildcardGlobbing(crossTable[name_i], as.data.frame(sensitive[i])) 
+      }
     }
     
     if (is.null(tot_code)) {
@@ -746,10 +760,6 @@ default_targeting <- function(crossTable, x,
     }
     rownames(output$sensitive) <- NULL
     rownames(output$is_sensitive) <- NULL
-  }
-  
-  if (!is.null(targeting_exclude)) {
-    output$exclude_relations <- exclude_relations
   }
   
   output
