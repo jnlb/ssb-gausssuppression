@@ -487,7 +487,7 @@ FindDifferenceCells <- function(x,
           sel_sensitive = targeting_exclude[[i]]$sensitive, 
           identifying = identifying, 
           sensitive = sensitive)
-        include <- include & sel_i
+        include <- include & !sel_i
       }
     }
     
@@ -653,27 +653,22 @@ default_targeting <- function(crossTable, x,
                               targeting_exclude = NULL,
                               ...) {
   
-  if (!is.null(targeting_include)) {
+  if (!is.null(targeting_include) | !is.null(targeting_exclude)) {
     if (!is.null(identifying) | !is.null(sensitive)) {
-      targeting_include <- c(list(identifying = identifying, sensitive = sensitive), targeting_include)
+      targeting_include <- c(list(list(identifying = identifying, sensitive = sensitive)), targeting_include)
     }
     d <- include_via_list(crossTable = crossTable, x = x, 
                           via_list = targeting_include, ...)
     identifying <- d$identifying
     sensitive <- d$sensitive
-  }
-  
-  if (!is.null(targeting_exclude)) {
-    exclude_relations <- exclude_via_list(crossTable = crossTable, x = x, 
-                                          identifying = identifying, 
-                                          sensitive = sensitive, 
-                                          via_list = targeting_exclude, ...)
-  } else {
-    exclude_relations <- NULL
-  }
-  
-  if (!is.null(targeting_include)) {
-    d$exclude_relations <- exclude_relations
+    
+    if (!is.null(targeting_exclude)) {
+      d$exclude_relations <- exclude_via_list(crossTable = crossTable, x = x, 
+                                              identifying = identifying, 
+                                              sensitive = sensitive, 
+                                              via_list = targeting_exclude, ...)
+    } 
+    
     return(d)
   }
   
