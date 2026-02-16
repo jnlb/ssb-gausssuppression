@@ -40,10 +40,11 @@ Default set to \code{Inf}}
 attribute disclosure scenarios. See Details.
 Default is \link{default_targeting}.}
 
-\item{print_frames}{Logical. If TRUE, additional data frames are printed to
-the console. When \code{mc_hierarchies} is used, this includes a
-data frame with hidden results. In addition, a data frame containing the
-primary suppressed difference cells is printed. The default is FALSE.}
+\item{print_frames}{Logical or character. If TRUE, additional data frames are
+printed to the console. When \code{mc_hierarchies} is used, this includes a data
+frame with hidden results. In addition, a data frame containing the primary
+suppressed difference cells is printed. If set to \code{"primary_cells"}, only the
+primary suppressed difference cells are printed. The default is FALSE.}
 
 \item{...}{parameters passed to children functions}
 }

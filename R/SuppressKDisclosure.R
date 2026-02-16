@@ -31,10 +31,12 @@
 #' @param targeting The mechanism underlying the interpretation of
 #' `identifying` and `sensitive`. See Details in [KDisclosurePrimary()].
 #' 
-#' @param print_frames Logical. If TRUE, additional data frames are printed to
-#' the console. When `mc_hierarchies` is used, this includes a
-#' data frame with hidden results. In addition, a data frame containing the
-#' primary suppressed difference cells is printed. The default is FALSE.
+#' @param print_frames Logical or character. If TRUE, additional data frames are
+#' printed to the console. When `mc_hierarchies` is used, this includes a data
+#' frame with hidden results. In addition, a data frame containing the primary
+#' suppressed difference cells is printed. If set to `"primary_cells"`, only the
+#' primary suppressed difference cells are printed. The default is FALSE.
+
 #'
 #' @return A data.frame containing the publishable data set, with a boolean
 #' variable `$suppressed` representing cell suppressions.
@@ -257,8 +259,13 @@ KDisclosurePrimary <- function(data,
   
   freq <- as.vector(crossprod(x, data[[freqVar]]))
   
+  only_print_primary_cells <- FALSE
+  if (identical(print_frames, "primary_cells")) {
+    print_frames <- TRUE
+    only_print_primary_cells <- TRUE
+  } 
   
-  if (print_frames & !is.null(mc_obj)) {
+  if (print_frames & !only_print_primary_cells & !is.null(mc_obj)) {
     r <- SSBtools::SeqInc(orig_nrow_crossTable + 1, nrow(crossTable))
     hidden_cells <- cbind(crossTable[r, ,drop = FALSE], freq = freq[r])
     rownames(hidden_cells) <- NULL
