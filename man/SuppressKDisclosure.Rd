@@ -170,7 +170,98 @@ show_out(out_unsafe$publish)
 
 # colnames in $unsafe give an indication as to which cells/differences are unsafe
 colnames(out_unsafe$unsafe)
-                                       
+                               
+                               
+                               
+ ### Advanced examples using `targeting_exclude` and `targeting_include`                             
+                               
+# Create a wrapper function to avoid repeating common arguments                                
+fun <- function(..., coalition = 7) {
+   SuppressKDisclosure(SSBtoolsData("d3"), 
+       formula = ~(region + county)*main_income + region*months + county*main_income*months, 
+       freqVar = "freq", coalition = coalition , print_frames = "primary_cells", 
+       mc_hierarchies = list(main_income = c("special = assistance + other", 
+                                             "ordinary = pensions + wages")),
+       ...)}
+       
+# Without any sensitive or identifying specifications       
+a1 <- fun()
+
+# Treat the `main_income` variable as sensitive
+a2 <- fun(sensitive = "main_income")
+
+# In addition, treat `region` as identifying
+a3 <- fun(sensitive = "main_income", identifying = "region")
+
+# Only the categories "assistance" and "wages" are considered sensitive
+# Also use "special" and "ordinary" as identifying categories (instead of "Total")
+a4 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")))  
+          
+# As above, but additionally exclude regions i and j via the sensitive specification          
+a5 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(sensitive = list(region = c("i", "j")))))
+
+# Same exclusion as above, but specified via identifying instead of sensitive
+# Here `main_income` must also be specified, since the default for identifying is "Total" 
+a6 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(identifying = list(region = c("i", "j"), 
+                                        main_income = "*"))))
+                                        
+# The results are identical                                          
+identical(a5,a6)
+
+
+# Add relations so that additional difference cells may be suppressed 
+a7 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(identifying = list(region = c("i", "j"), 
+                                        main_income = "*"))), 
+          targeting_include = list(
+            list(identifying = list(region = c("14", "U", "V", "X"), 
+                                    main_income = c("special", "ordinary"), 
+                                    months = c("m10m12", "Total")), 
+                 sensitive = list(region = c("m01m05"), 
+                                  main_income = c("pensions", "assistance")))))
+            
+# As above, but use a data.frame for precise specification of relations
+# Therefore, "V ordinary–pensions" is no longer included                                     
+a8 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(identifying = list(region = c("i", "j"), 
+                                        main_income = "*"))), 
+          targeting_include = list(
+            list(identifying = data.frame(region = c("14", "U", "V", "X"), 
+                                          main_income = c("special", "ordinary"), 
+                                          months = c("m10m12", "Total")), 
+                 sensitive = list(region = c("m01m05"), 
+                                  main_income = c("pensions", "assistance")))))    
+   
+# Specify the same relations as above, but in a different way
+# Using multiple list elements                                    
+a9 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(identifying = list(region = c("i", "j"), 
+                                        main_income = "*"))), 
+          targeting_include = list(
+            list(identifying = list(region = "14", 
+                                    main_income = "special", 
+                                    months = "m10m12"), 
+                 sensitive = list(region = "14", 
+                                  main_income = "assistance", 
+                                  months = "m10m12")), 
+            list(identifying = list(region = c("U", "X"), 
+                                    main_income = "ordinary", 
+                                    months = "Total"), 
+                 sensitive = list(region = c("U", "X"), 
+                                  main_income = "pensions", 
+                                  months = "Total"))))                                                                   
+
+# The results are identical 
+identical(a8,a9)
+
 }
 \author{
 Daniel P. Lupp and Øyvind Langsrud
