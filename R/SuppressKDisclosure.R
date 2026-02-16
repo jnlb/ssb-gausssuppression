@@ -530,7 +530,7 @@ identifying_sensitive_selection <- function(sel_identifying, sel_sensitive,
   if (is.null(sel_identifying)) {
     return(ma_sensitive)
   }
-  if (is.null(sel_identifying)) {
+  if (is.null(sel_sensitive)) {
     return(ma_identifying)
   }
   ma_identifying & ma_sensitive
