@@ -164,6 +164,19 @@ test_that("SuppressKDisclosure", {
                         ...)}
   
   
+  # Only the categories "assistance" and "wages" are considered sensitive
+  # Also use "special" and "ordinary" as identifying categories (instead of "Total")
+  a4 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+            identifying = list(region = "*", main_income = c("special", "ordinary")))
+  
+  
+  a4_ <- fun(targeting_include = list(list(
+            sensitive = list(main_income = c("assistance", "wages")), 
+            identifying = list(region = "*", main_income = c("special", "ordinary")))))
+  
+  expect_identical(a4, a4_)
+  
+  
   # As above, but additionally exclude regions i and j via the sensitive specification          
   a5 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
             identifying = list(region = "*", main_income = c("special", "ordinary")), 
