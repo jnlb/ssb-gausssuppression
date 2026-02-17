@@ -796,7 +796,18 @@ default_targeting <- function(crossTable, x,
                    paste(names(missing_identifying)[missing_tot_code], collapse = ", "),
                    ". Specify in identifying list."))
       }
-      identifying <- c(identifying, missing_identifying)
+      if (is.data.frame(identifying)) {
+        if (!is.list(missing_identifying) ||
+            any(lengths(missing_identifying) != 1)) {
+          stop("For data.frame input, additional variable(s) must be specified since the total code is not unique.")
+        }
+        identifying <- cbind(
+          identifying,
+          as.data.frame(missing_identifying, stringsAsFactors = FALSE)
+        )
+      } else {
+        identifying <- c(identifying, missing_identifying)
+      }
     }
     
     
