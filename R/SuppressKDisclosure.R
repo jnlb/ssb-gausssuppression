@@ -684,6 +684,28 @@ difference_cells <- function(identifying, sensitive) {
 #' Generates a `targeting` specification for use with
 #' [SuppressKDisclosure()]. The function is actually used internally by
 #' [KDisclosurePrimary()].
+#' 
+#' @details
+#' The parameters `identifying` and `sensitive` are used to select table cells
+#' (including hidden cells constructed via `mc_hierarchies`). All such cells are
+#' represented by rows in `crossTable`, which may be extended due to
+#' `mc_hierarchies`. Thus, rows in `crossTable` are selected as identifying or
+#' sensitive.
+#'
+#' In addition, `sensitive` specifies which codes within the selected rows are
+#' regarded as sensitive.
+#'
+#' The logic differs slightly for unspecified variables:
+#' For `identifying`, unspecified variables are set to total codes.
+#' For `sensitive`, all rows in `crossTable` matching the specified variables
+#' are selected.
+#'
+#' The parameters `identifying` and `sensitive` are used to construct the
+#' `targeting` specification for `KDisclosurePrimary()`, resulting in the
+#' elements `identifying`, `sensitive`, and `is_sensitive`.
+#'
+#' When `targeting_include` and/or `targeting_exclude` are specified,
+#' additional elements `include_relations` and `exclude_relations` are created.
 #'
 #'
 #' @param crossTable A `crossTable`, possibly extended after applying
@@ -696,17 +718,24 @@ difference_cells <- function(identifying, sensitive) {
 #' below. If not all variables are included, total codes for the missing
 #' variables are derived automatically. This requires that the overall total
 #' is included as an output row.
-#' DESCRIBE data.frame option
 #'
 #' @param sensitive Specification of information considered unacceptable to
-#' disclose. Either a character vector of variable names, or a named list with
-#' variable names as names and specified codes as values. The wildcard
-#' characters `*` and `?`, as well as the exclusion operator `!`, may be used,
-#' since [SSBtools::WildcardGlobbing()] is applied.
-#' DESCRIBE data.frame option
+#' disclose. It may be given as a character vector of variable names, a named
+#' list with variable names as names and specified codes as values, or a data
+#' frame specifying variable combinations. The wildcard characters `*` and `?`,
+#' as well as the exclusion operator `!`, may be used, since
+#' [SSBtools::WildcardGlobbing()] is applied.
 #' 
-#' @param  targeting_include targeting_include
-#' @param  targeting_exclude targeting_exclude
+#' @param targeting_include A list of two-element lists with components
+#' `identifying` and `sensitive`. Each element defines identifying–sensitive
+#' relations using the same specification rules as the parameters
+#' `identifying` and `sensitive`. All specifications together, including the
+#' main `identifying` and `sensitive` parameters, define the relations that are
+#' examined for suppression.
+#'
+#' @param targeting_exclude A list specified in the same way as
+#' `targeting_include`. The relations defined here are ignored when examining
+#' suppression.
 #' 
 #' @param ... Unused parameters.
 #'

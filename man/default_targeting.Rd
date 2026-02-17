@@ -25,19 +25,25 @@ default_targeting(
 know. The specification is subject to the same requirements as \code{sensitive}
 below. If not all variables are included, total codes for the missing
 variables are derived automatically. This requires that the overall total
-is included as an output row.
-DESCRIBE data.frame option}
+is included as an output row.}
 
 \item{sensitive}{Specification of information considered unacceptable to
-disclose. Either a character vector of variable names, or a named list with
-variable names as names and specified codes as values. The wildcard
-characters \code{*} and \verb{?}, as well as the exclusion operator \code{!}, may be used,
-since \code{\link[SSBtools:WildcardGlobbing]{SSBtools::WildcardGlobbing()}} is applied.
-DESCRIBE data.frame option}
+disclose. It may be given as a character vector of variable names, a named
+list with variable names as names and specified codes as values, or a data
+frame specifying variable combinations. The wildcard characters \code{*} and \verb{?},
+as well as the exclusion operator \code{!}, may be used, since
+\code{\link[SSBtools:WildcardGlobbing]{SSBtools::WildcardGlobbing()}} is applied.}
 
-\item{targeting_include}{targeting_include}
+\item{targeting_include}{A list of two-element lists with components
+\code{identifying} and \code{sensitive}. Each element defines identifying–sensitive
+relations using the same specification rules as the parameters
+\code{identifying} and \code{sensitive}. All specifications together, including the
+main \code{identifying} and \code{sensitive} parameters, define the relations that are
+examined for suppression.}
 
-\item{targeting_exclude}{targeting_exclude}
+\item{targeting_exclude}{A list specified in the same way as
+\code{targeting_include}. The relations defined here are ignored when examining
+suppression.}
 
 \item{...}{Unused parameters.}
 }
@@ -48,6 +54,28 @@ A named \code{targeting} list. See \code{\link[=SuppressKDisclosure]{SuppressKDi
 Generates a \code{targeting} specification for use with
 \code{\link[=SuppressKDisclosure]{SuppressKDisclosure()}}. The function is actually used internally by
 \code{\link[=KDisclosurePrimary]{KDisclosurePrimary()}}.
+}
+\details{
+The parameters \code{identifying} and \code{sensitive} are used to select table cells
+(including hidden cells constructed via \code{mc_hierarchies}). All such cells are
+represented by rows in \code{crossTable}, which may be extended due to
+\code{mc_hierarchies}. Thus, rows in \code{crossTable} are selected as identifying or
+sensitive.
+
+In addition, \code{sensitive} specifies which codes within the selected rows are
+regarded as sensitive.
+
+The logic differs slightly for unspecified variables:
+For \code{identifying}, unspecified variables are set to total codes.
+For \code{sensitive}, all rows in \code{crossTable} matching the specified variables
+are selected.
+
+The parameters \code{identifying} and \code{sensitive} are used to construct the
+\code{targeting} specification for \code{KDisclosurePrimary()}, resulting in the
+elements \code{identifying}, \code{sensitive}, and \code{is_sensitive}.
+
+When \code{targeting_include} and/or \code{targeting_exclude} are specified,
+additional elements \code{include_relations} and \code{exclude_relations} are created.
 }
 \examples{
 
