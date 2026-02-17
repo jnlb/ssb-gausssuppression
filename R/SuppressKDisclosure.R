@@ -1,6 +1,6 @@
 #' K-disclosure suppression
 #'
-#' A function for suppressing frequency tables using the k-disclosure method.
+#' Frequency table suppression for targeted attribute disclosure protection.
 #'
 #' The argument `targeting` may also be a function that returns such a list.
 #' This works similarly to supplied functions in `GaussSuppressionFromData()`.

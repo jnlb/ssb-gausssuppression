@@ -77,7 +77,7 @@ A data.frame containing the publishable data set, with a boolean
 variable \verb{$suppressed} representing cell suppressions.
 }
 \description{
-A function for suppressing frequency tables using the k-disclosure method.
+Frequency table suppression for targeted attribute disclosure protection.
 }
 \details{
 The argument \code{targeting} may also be a function that returns such a list.
