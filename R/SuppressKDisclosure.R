@@ -7,6 +7,11 @@
 #' Note, however, that the function operates on possibly extended versions of
 #' `freq`, `x`, and `crossTable` that reflect the use of `mc_hierarchies`, when
 #' applicable.
+#' 
+#' The parameters `identifying` and `sensitive` are included here as explicit
+#' arguments, but they are in fact parameters of [default_targeting()].
+#' In addition, the `default_targeting()` parameters `targeting_include` and
+#' `targeting_exclude` may also be used (see examples).
 #'
 #' @param data a data.frame representing the data set
 #' @param coalition numeric vector of length one, representing possible size of an

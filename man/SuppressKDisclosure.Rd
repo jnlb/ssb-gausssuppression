@@ -85,6 +85,11 @@ This works similarly to supplied functions in \code{GaussSuppressionFromData()}.
 Note, however, that the function operates on possibly extended versions of
 \code{freq}, \code{x}, and \code{crossTable} that reflect the use of \code{mc_hierarchies}, when
 applicable.
+
+The parameters \code{identifying} and \code{sensitive} are included here as explicit
+arguments, but they are in fact parameters of \code{\link[=default_targeting]{default_targeting()}}.
+In addition, the \code{default_targeting()} parameters \code{targeting_include} and
+\code{targeting_exclude} may also be used (see examples).
 }
 \examples{
 # data
