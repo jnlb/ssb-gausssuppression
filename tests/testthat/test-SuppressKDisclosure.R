@@ -51,22 +51,26 @@ test_that("SuppressKDisclosure", {
   minus <- c(5, 7, 9, 11, 12, 13, 21, 26, 28, 29, 31, 34, 37, 38)
   d <- d2[-minus, ]
   
+  d$freq2 = round(d$freq/7)
+  
   suppsums <- integer(0)
   
   sensitive <- vector("list", 2)
   sensitive[[2]] <- list(region = c("A", "C", "G"), main_income = c("pensions", "wages"))
   for (extend0 in c(TRUE, FALSE)) {
     for (i in 1:2) {
-      a <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 3, 
-                               extend0 = extend0, sensitive = sensitive[[i]],
-                               whenEmptyUnsuppressed = NULL,
-                               printInc = printInc)
-      suppsums <- c(suppsums, sum(a$suppressed))
+      for (singletonMethod in  c("anySumNOTprimary", "anySum0") ) {
+        a <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq2", coalition = 3, 
+                                 extend0 = extend0, sensitive = sensitive[[i]],
+                                 whenEmptyUnsuppressed = NULL,
+                                 singletonMethod = singletonMethod , 
+                                 printInc = printInc)
+        suppsums <- c(suppsums, sum(a$suppressed))
+      }
     }
   }
-  expect_identical(suppsums, c(53L, 28L, 32L, 22L))
   
-  
+  expect_identical(suppsums, c(63L, 69L, 38L, 38L, 50L, 52L, 33L, 41L))
   
   
   mm <- SSBtools::ModelMatrix(d, dimVar = 1:4, crossTable = TRUE)
