@@ -476,6 +476,7 @@ KDisclosurePrimary <- function(data,
     include_relations = include_relations,
     targeting_exclude = targeting_exclude, 
     targeting_include = targeting_include,
+    orig_nrow_crossTable = orig_nrow_crossTable,
     print_frames = print_frames
   )
 }
@@ -496,6 +497,7 @@ FindDifferenceCells <- function(x,
                                 include_relations,
                                 targeting_exclude,
                                 targeting_include,
+                                orig_nrow_crossTable,
                                 print_frames = FALSE
                                 ) {
   
@@ -515,7 +517,7 @@ FindDifferenceCells <- function(x,
     colSums_y_xty_j_1     != xty@x 
   
   if (!any(r)) {
-    return(rep(FALSE, nrow(crossTable)))
+    return(rep(FALSE, orig_nrow_crossTable))
   }
   
   child <- xty@i[r] + 1L
@@ -530,7 +532,7 @@ FindDifferenceCells <- function(x,
     freq_diff <= coalition
   
   if (!any(disclosures)) {
-    return(rep(FALSE, nrow(crossTable)))
+    return(rep(FALSE, orig_nrow_crossTable))
   }
   
   freq_diff <- freq_diff[disclosures]
