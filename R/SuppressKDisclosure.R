@@ -419,31 +419,31 @@ KDisclosurePrimary <- function(data,
     
     # Match identifying
     ma <- SSBtools::Match(identifying, crossTable)
-    identifying <- identifying[!is.na(ma), ]
+    identifying <- identifying[!is.na(ma), , drop = FALSE]
     exclude_relations <- exclude_relations[, !is.na(ma) ,drop = FALSE]
     include_relations <- include_relations[, !is.na(ma) ,drop = FALSE]
     y <- x[, ma[!is.na(ma)], drop = FALSE]
     if (!use_is_sensitive) {
       sel <- !SSBtools::DummyDuplicated(y, rnd = TRUE)
       y <- y[, sel, drop = FALSE]
-      identifying <- identifying[sel, ]
+      identifying <- identifying[sel, , drop = FALSE]
       exclude_relations <- exclude_relations[, sel,drop = FALSE]
       include_relations <- include_relations[, sel,drop = FALSE]
     }
     
     # Match sensitive
     ma <- SSBtools::Match(sensitive, crossTable)
-    sensitive <- sensitive[!is.na(ma), ]
+    sensitive <- sensitive[!is.na(ma), , drop = FALSE]
     exclude_relations <- exclude_relations[!is.na(ma), ,drop = FALSE]
     include_relations <- include_relations[!is.na(ma), ,drop = FALSE]
     if (use_is_sensitive) {
-      is_sensitive <- is_sensitive[!is.na(ma), ]
+      is_sensitive <- is_sensitive[!is.na(ma), , drop = FALSE]
     }
     x <- x[, ma[!is.na(ma)], drop = FALSE]
     if (!use_is_sensitive) {
       sel <- !SSBtools::DummyDuplicated(x, rnd = TRUE)
       x <- x[, sel, drop = FALSE]
-      sensitive <- sensitive[sel, ]
+      sensitive <- sensitive[sel, , drop = FALSE]
       exclude_relations <- exclude_relations[sel, ,drop = FALSE]
       include_relations <- include_relations[sel, ,drop = FALSE]
     }
