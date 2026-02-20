@@ -452,7 +452,7 @@ KDisclosurePrimary <- function(data,
     sel <- !SSBtools::DummyDuplicated(x, rnd = TRUE)
     x <- x[, sel, drop = FALSE]
     y <- x
-    crossTable <- crossTable[sel, ]
+    crossTable <- crossTable[sel, , drop = FALSE]
     exclude_relations <- exclude_relations[sel, sel, drop = FALSE]
     include_relations <- include_relations[sel, sel, drop = FALSE]
   }
