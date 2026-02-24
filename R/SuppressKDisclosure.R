@@ -93,43 +93,43 @@
 #' 
 #' 
 #' ### Examples with identifying and sensitive ###
-#' 
-#' mun_b <- SSBtools::SSBtoolsData("mun_accidents")
-#' mun_b$freq <- c(0,5,3,4,1,0,
-#'                 0,0,2,0,0,6,
-#'                 4,1,0,4,0,0,
-#'                 0,0,0,0,0,0)
 #'                 
-#' out_d <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+#' out_d <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
 #'                              formula = ~mun*inj, sensitive= "inj",
 #'                              print_frames = TRUE)
 #' show_out(out_d)                                                    
 #'                 
 #' 
-#' out_d1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+#' out_d1 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
 #'                               formula = ~mun*inj, mc_hierarchies = mc_dimlist,
 #'                               sensitive = list(mun =  "k3", inj = "injured"),
 #'                               print_frames = TRUE)
 #' show_out(out_d1)                             
 #' 
-#' out_d2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+#' out_d2 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
 #'                               formula = ~mun*inj, 
 #'                               sensitive = list(inj = "serious", mun = "k3"),
 #'                               print_frames = TRUE)
 #' show_out(out_d2)                         
 #'
-#' out_i1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+#' out_i1 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
 #'                               formula = ~mun*inj, identifying = "mun",
 #'                               print_frames = TRUE)
 #' show_out(out_i1)                            
 #'  
-#' out_i2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+#' out_i2 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
 #'                               formula = ~mun*inj, identifying = "inj",
 #'                               print_frames = TRUE)
 #' show_out(out_i2)
 #' 
 #'
-#' # Same example as out_d, but with cells forced to be published, yielding unsafe table
+#' mun_b <- SSBtools::SSBtoolsData("mun_accidents")
+#' mun_b$freq <- c(0,5,3,4,1,0,
+#'                 0,0,2,0,0,6,
+#'                 4,1,0,4,0,0,
+#'                 0,0,0,0,0,0)
+#'
+#' # With cells forced to be published, yielding unsafe table
 #' out_unsafe <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
 #'                                  formula = ~mun*inj, sensitive = "inj", 
 #'                                  forced = c(12,14,15), output = "all",
