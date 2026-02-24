@@ -81,7 +81,8 @@
 #'
 #' # Example with hierarchy and meaningful combination
 #' out2 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
-#'                        hierarchies = dimlists, mc_hierarchies = mc_dimlist)
+#'                        hierarchies = dimlists, mc_hierarchies = mc_dimlist,
+#'                        print_frames = TRUE)
 #' show_out(out2)
 #'
 #' #' # Example of table without mariginals, and mc_hierarchies to protect
@@ -100,26 +101,31 @@
 #'                 0,0,0,0,0,0)
 #'                 
 #' out_d <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
-#'                                  formula = ~mun*inj, sensitive= "inj")
+#'                              formula = ~mun*inj, sensitive= "inj",
+#'                              print_frames = TRUE)
 #' show_out(out_d)                                                    
 #'                 
 #' 
 #' out_d1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
 #'                               formula = ~mun*inj, mc_hierarchies = mc_dimlist,
-#'                               sensitive = list(mun =  "k3", inj = "injured"))
+#'                               sensitive = list(mun =  "k3", inj = "injured"),
+#'                               print_frames = TRUE)
 #' show_out(out_d1)                             
 #' 
 #' out_d2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
 #'                               formula = ~mun*inj, 
-#'                               sensitive = list(inj = "serious", mun = "k3"))
+#'                               sensitive = list(inj = "serious", mun = "k3"),
+#'                               print_frames = TRUE)
 #' show_out(out_d2)                         
 #'
 #' out_i1 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
-#'                               formula = ~mun*inj, identifying = "mun")
+#'                               formula = ~mun*inj, identifying = "mun",
+#'                               print_frames = TRUE)
 #' show_out(out_i1)                            
 #'  
 #' out_i2 <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
-#'                               formula = ~mun*inj, identifying = "inj")
+#'                               formula = ~mun*inj, identifying = "inj",
+#'                               print_frames = TRUE)
 #' show_out(out_i2)
 #' 
 #'
