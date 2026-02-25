@@ -27,8 +27,13 @@
 #' @param freqVar name of the frequency variable in `data`
 #' @param mc_hierarchies a hierarchy representing meaningful combinations to be
 #' protected. Default value is `NULL`.
-#' @param upper_bound numeric value representing minimum count considered safe.
-#' Default set to `Inf`
+#' @param upper_bound  Numeric value specifying the maximum cell frequency for which
+#' disclosure of belonging to the cell may be regarded as
+#' unacceptable. When freq > upper_bound, disclosure of
+#' belonging to the cell is regarded as acceptable regardless
+#' of the specification of the `sensitive` parameter.
+#' Default is Inf. Note that this parameter may also be useful
+#' for reducing computational burden.
 #' @param ... parameters passed to children functions
 #' @inheritParams GaussSuppressionFromData
 #' @inheritParams default_targeting

@@ -33,8 +33,13 @@ protected. Default value is \code{NULL}.}
 attacking coalition. This parameter corresponds to the parameter k in the
 definition of k-disclosure.}
 
-\item{upper_bound}{numeric value representing minimum count considered safe.
-Default set to \code{Inf}}
+\item{upper_bound}{Numeric value specifying the maximum cell frequency for which
+disclosure of belonging to the cell may be regarded as
+unacceptable. When freq > upper_bound, disclosure of
+belonging to the cell is regarded as acceptable regardless
+of the specification of the \code{sensitive} parameter.
+Default is Inf. Note that this parameter may also be useful
+for reducing computational burden.}
 
 \item{targeting}{NULL, a list, or a function that returns a list specifying
 attribute disclosure scenarios. See Details.

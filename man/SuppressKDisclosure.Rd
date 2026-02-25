@@ -31,8 +31,13 @@ definition of k-disclosure.}
 \item{mc_hierarchies}{a hierarchy representing meaningful combinations to be
 protected. Default value is \code{NULL}.}
 
-\item{upper_bound}{numeric value representing minimum count considered safe.
-Default set to \code{Inf}}
+\item{upper_bound}{Numeric value specifying the maximum cell frequency for which
+disclosure of belonging to the cell may be regarded as
+unacceptable. When freq > upper_bound, disclosure of
+belonging to the cell is regarded as acceptable regardless
+of the specification of the \code{sensitive} parameter.
+Default is Inf. Note that this parameter may also be useful
+for reducing computational burden.}
 
 \item{dimVar}{The main dimensional variables and additional aggregating
 variables. This parameter can be  useful when hierarchies and formula are
