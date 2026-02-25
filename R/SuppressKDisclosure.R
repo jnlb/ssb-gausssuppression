@@ -507,6 +507,32 @@ FindDifferenceCells <- function(x,
                                 print_frames = FALSE
                                 ) {
   
+  use_is_sensitive <- !is.null(is_sensitive)
+  
+  if (is.null(identifying)) {
+    identifying <- crossTable
+  }
+  if (is.null(sensitive)) {
+    sensitive <- crossTable
+  }
+  
+  sel_x <- freq_x <= upper_bound & freq_x > 0  
+  sel_y <- freq_y <= (upper_bound + coalition)  & freq_y > 0 
+  if (!any(sel_x) | !any(sel_y)) {
+    return(rep(FALSE, orig_nrow_crossTable))
+  }
+  freq_x <- freq_x[sel_x]
+  freq_y <- freq_y[sel_y]
+  if (use_is_sensitive) {
+    is_sensitive <- is_sensitive[sel_x, , drop = FALSE]
+  }
+  sensitive <- sensitive[sel_x, , drop = FALSE]
+  identifying <- identifying[sel_y, , drop = FALSE]
+  x <- x[, sel_x, drop = FALSE]
+  y <- y[, sel_y, drop = FALSE]
+  exclude_relations <- exclude_relations[sel_x, sel_y, drop = FALSE]
+  include_relations <- include_relations[sel_x, sel_y, drop = FALSE]
+  
   xty <- crossprod(x, y)
   
   if (!is.null(exclude_relations)) {
@@ -531,11 +557,7 @@ FindDifferenceCells <- function(x,
   
   freq_diff <- freq_y[parent] - freq_x[child]
   
-  disclosures <- 
-    freq_x[child] <= upper_bound  &
-    freq_x[child] > 0  &
-    freq_y[parent] > 0  &
-    freq_diff <= coalition
+  disclosures <- freq_diff <= coalition
   
   if (!any(disclosures)) {
     return(rep(FALSE, orig_nrow_crossTable))
@@ -544,15 +566,6 @@ FindDifferenceCells <- function(x,
   freq_diff <- freq_diff[disclosures]
   parent <- parent[disclosures]
   child <- child[disclosures]
-  
-  use_is_sensitive <- !is.null(is_sensitive)
-  
-  if (is.null(identifying)) {
-    identifying <- crossTable
-  }
-  if (is.null(sensitive)) {
-    sensitive <- crossTable
-  }
   
   identifying <- identifying[parent, , drop = FALSE]
   sensitive <- sensitive[child, , drop = FALSE]
