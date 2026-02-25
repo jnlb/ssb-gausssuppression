@@ -17,7 +17,7 @@
 #'  |\strong{extraAggregate}  |FALSE                   |TRUE                       |TRUE                         |FALSE                      |
 #'  |\strong{secondaryZeros}  |FALSE                   |FALSE                      |FALSE                        |1                          |
 #'  |\strong{domWeightMethod} |                        |"default"                  |                             |                           |
-#'  |\strong{singletonMethod} |                        |"numttHTT"                 |"numttHTT"                   |"anySumNOTprimary"         |
+#'  |\strong{singletonMethod} |                        |"numttHTT"                 |"numttHTT"                   |"anySum0"         |
 #'  
 #' @param x the character name or index of the spec to be returned. If `NULL` (default),
 #' returns list of all specs
@@ -80,7 +80,7 @@ PackageSpecs <- function(x = NULL, printTable = FALSE) {
         secondaryZeros = 1,
         candidates = DirectDisclosureCandidates,
         extend0 = TRUE,
-        singletonMethod = "anySumNOTprimary",
+        singletonMethod = "anySum0",
         singleton = SingletonDefault,
         preAggregate = NA,
         extraAggregate = FALSE

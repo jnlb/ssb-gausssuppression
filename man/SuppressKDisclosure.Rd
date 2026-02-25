@@ -13,6 +13,10 @@ SuppressKDisclosure(
   formula = NULL,
   hierarchies = NULL,
   freqVar = NULL,
+  targeting = default_targeting,
+  identifying = NULL,
+  sensitive = NULL,
+  print_frames = FALSE,
   ...,
   spec = PackageSpecs("kDisclosureSpec")
 )
@@ -27,8 +31,13 @@ definition of k-disclosure.}
 \item{mc_hierarchies}{a hierarchy representing meaningful combinations to be
 protected. Default value is \code{NULL}.}
 
-\item{upper_bound}{numeric value representing minimum count considered safe.
-Default set to \code{Inf}}
+\item{upper_bound}{Numeric value specifying the maximum cell frequency for which
+disclosure of belonging to the cell may be regarded as
+unacceptable. When freq > upper_bound, disclosure of
+belonging to the cell is regarded as acceptable regardless
+of the specification of the \code{sensitive} parameter.
+Default is Inf. Note that this parameter may also be useful
+for reducing computational burden.}
 
 \item{dimVar}{The main dimensional variables and additional aggregating
 variables. This parameter can be  useful when hierarchies and formula are
@@ -42,6 +51,28 @@ unspecified.}
 
 \item{freqVar}{name of the frequency variable in \code{data}}
 
+\item{targeting}{The mechanism underlying the interpretation of
+\code{identifying} and \code{sensitive}. See Details in \code{\link[=KDisclosurePrimary]{KDisclosurePrimary()}}.}
+
+\item{identifying}{Specification of information that an intruder may already
+know. The specification is subject to the same requirements as \code{sensitive}
+below. If not all variables are included, total codes for the missing
+variables are derived automatically. This requires that the overall total
+is included as an output row.}
+
+\item{sensitive}{Specification of information considered unacceptable to
+disclose. It may be given as a character vector of variable names, a named
+list with variable names as names and specified codes as values, or a data
+frame specifying variable combinations. The wildcard characters \code{*} and \verb{?},
+as well as the exclusion operator \code{!}, may be used, since
+\code{\link[SSBtools:WildcardGlobbing]{SSBtools::WildcardGlobbing()}} is applied.}
+
+\item{print_frames}{Logical or character. If TRUE, additional data frames are
+printed to the console. When \code{mc_hierarchies} is used, this includes a data
+frame with hidden results. In addition, a data frame containing the primary
+suppressed difference cells is printed. If set to \code{"primary_cells"}, only the
+primary suppressed difference cells are printed. The default is FALSE.}
+
 \item{...}{parameters passed to children functions}
 
 \item{spec}{\code{NULL} or a named list of arguments that will act as default values.}
@@ -51,11 +82,30 @@ A data.frame containing the publishable data set, with a boolean
 variable \verb{$suppressed} representing cell suppressions.
 }
 \description{
-A function for suppressing frequency tables using the k-disclosure method.
+Frequency table suppression for targeted attribute disclosure protection.
+}
+\details{
+The argument \code{targeting} may also be a function that returns such a list.
+This works similarly to supplied functions in \code{GaussSuppressionFromData()}.
+Note, however, that the function operates on possibly extended versions of
+\code{freq}, \code{x}, and \code{crossTable} that reflect the use of \code{mc_hierarchies}, when
+applicable.
+
+The parameters \code{identifying} and \code{sensitive} are included here as explicit
+arguments, but they are in fact parameters of \code{\link[=default_targeting]{default_targeting()}}.
+In addition, the \code{default_targeting()} parameters \code{targeting_include} and
+\code{targeting_exclude} may also be used (see examples).
 }
 \examples{
 # data
-data <- SSBtools::SSBtoolsData("mun_accidents")
+mun_a <- SSBtools::SSBtoolsData("mun_accidents")
+
+# Function to print output in wide format, marking suppressed values with `*`
+show_out <- function(out) {  
+  out$freq = sprintf("\%s\%s", out$freq, c(" ","*")[1+out$suppressed])
+  a <- reshape(out[1:3], idvar = "mun", timevar = "inj", direction = "wide", )
+  names(a) <- sub("^freq\\\\.", "", names(a))
+  print(a)}
 
 # hierarchies as DimLists
 mun <- data.frame(levels = c("@", rep("@@", 6)),
@@ -72,16 +122,162 @@ mc_dimlist <- list(inj = inj2)
 mc_nomargs <- list(inj = inj3)
 
 #' # Example with formula, no meaningful combination
-out <- SuppressKDisclosure(data, coalition = 1, freqVar = "freq", formula = ~mun*inj)
+out <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq", 
+                           formula = ~mun*inj, print_frames = TRUE)
+show_out(out)
 
 # Example with hierarchy and meaningful combination
-out2 <- SuppressKDisclosure(data, coalition = 1, freqVar = "freq",
-hierarchies = dimlists, mc_hierarchies = mc_dimlist)
+out2 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
+                       hierarchies = dimlists, mc_hierarchies = mc_dimlist,
+                       print_frames = TRUE)
+show_out(out2)
 
 #' # Example of table without mariginals, and mc_hierarchies to protect
-out3 <- SuppressKDisclosure(data, coalition = 1, freqVar = "freq",
-formula = ~mun:inj, mc_hierarchies = mc_nomargs )
+out3 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
+                       formula = ~mun:inj, mc_hierarchies = mc_nomargs,
+                       print_frames = TRUE)
+show_out(out3)
+
+
+### Examples with identifying and sensitive ###
+                
+out_d <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
+                             formula = ~mun*inj, sensitive= "inj",
+                             print_frames = TRUE)
+show_out(out_d)                                                    
+                
+
+out_d1 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
+                              formula = ~mun*inj, mc_hierarchies = mc_dimlist,
+                              sensitive = list(mun =  "k3", inj = "injured"),
+                              print_frames = TRUE)
+show_out(out_d1)                             
+
+out_d2 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
+                              formula = ~mun*inj, 
+                              sensitive = list(inj = "serious", mun = "k3"),
+                              print_frames = TRUE)
+show_out(out_d2)                         
+
+out_i1 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
+                              formula = ~mun*inj, identifying = "mun",
+                              print_frames = TRUE)
+show_out(out_i1)                            
+ 
+out_i2 <- SuppressKDisclosure(mun_a, coalition = 1, freqVar = "freq",
+                              formula = ~mun*inj, identifying = "inj",
+                              print_frames = TRUE)
+show_out(out_i2)
+
+
+mun_b <- SSBtools::SSBtoolsData("mun_accidents")
+mun_b$freq <- c(0,5,3,4,1,0,
+                0,0,2,0,0,6,
+                4,1,0,4,0,0,
+                0,0,0,0,0,0)
+
+# With cells forced to be published, yielding unsafe table
+out_unsafe <- SuppressKDisclosure(mun_b, coalition = 1, freqVar = "freq",
+                                 formula = ~mun*inj, sensitive = "inj", 
+                                 forced = c(12,14,15), output = "all",
+                                 print_frames = TRUE)
+show_out(out_unsafe$publish)
+
+# colnames in $unsafe give an indication as to which cells/differences are unsafe
+colnames(out_unsafe$unsafe)
+                               
+                               
+                               
+ ### Advanced examples using `targeting_exclude` and `targeting_include`                             
+                               
+# Create a wrapper function to avoid repeating common arguments                                
+fun <- function(..., coalition = 7) {
+   SuppressKDisclosure(SSBtoolsData("d3"), 
+       formula = ~(region + county)*main_income + region*months + county*main_income*months, 
+       freqVar = "freq", coalition = coalition , print_frames = "primary_cells", 
+       mc_hierarchies = list(main_income = c("special = assistance + other", 
+                                             "ordinary = pensions + wages")),
+       ...)}
+       
+# Without any sensitive or identifying specifications       
+a1 <- fun()
+
+# Treat the `main_income` variable as sensitive
+a2 <- fun(sensitive = "main_income")
+
+# In addition, treat `region` as identifying
+a3 <- fun(sensitive = "main_income", identifying = "region")
+
+# Only the categories "assistance" and "wages" are considered sensitive
+# Also use "special" and "ordinary" as identifying categories (instead of "Total")
+a4 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")))  
+          
+# As above, but additionally exclude regions i and j via the sensitive specification          
+a5 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(sensitive = list(region = c("i", "j")))))
+
+# Same exclusion as above, but specified via identifying instead of sensitive
+# Here `main_income` must also be specified, since the default for identifying is "Total" 
+a6 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(identifying = list(region = c("i", "j"), 
+                                        main_income = "*"))))
+                                        
+# The results are identical                                          
+identical(a5,a6)
+
+
+# Add relations so that additional difference cells may be suppressed 
+a7 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(identifying = list(region = c("i", "j"), 
+                                        main_income = "*"))), 
+          targeting_include = list(
+            list(identifying = list(region = c("14", "U", "V", "X"), 
+                                    main_income = c("special", "ordinary"), 
+                                    months = c("m10m12", "Total")), 
+                 sensitive = list(region = c("m01m05"), 
+                                  main_income = c("pensions", "assistance")))))
+            
+# As above, but use a data.frame for precise specification of relations
+# Therefore, "V ordinary–pensions" is no longer included                                     
+a8 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(identifying = list(region = c("i", "j"), 
+                                        main_income = "*"))), 
+          targeting_include = list(
+            list(identifying = data.frame(region = c("14", "U", "V", "X"), 
+                                          main_income = c("special", "ordinary"), 
+                                          months = c("m10m12", "Total")), 
+                 sensitive = list(region = c("m01m05"), 
+                                  main_income = c("pensions", "assistance")))))    
+   
+# Specify the same relations as above, but in a different way
+# Using multiple list elements                                    
+a9 <- fun(sensitive = list(main_income = c("assistance", "wages")), 
+          identifying = list(region = "*", main_income = c("special", "ordinary")), 
+          targeting_exclude = list(list(identifying = list(region = c("i", "j"), 
+                                        main_income = "*"))), 
+          targeting_include = list(
+            list(identifying = list(region = "14", 
+                                    main_income = "special", 
+                                    months = "m10m12"), 
+                 sensitive = list(region = "14", 
+                                  main_income = "assistance", 
+                                  months = "m10m12")), 
+            list(identifying = list(region = c("U", "X"), 
+                                    main_income = "ordinary", 
+                                    months = "Total"), 
+                 sensitive = list(region = c("U", "X"), 
+                                  main_income = "pensions", 
+                                  months = "Total"))))                                                                   
+
+# The results are identical 
+identical(a8,a9)
+
 }
 \author{
-Daniel P. Lupp
+Daniel P. Lupp and Øyvind Langsrud
 }

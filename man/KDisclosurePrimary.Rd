@@ -12,6 +12,8 @@ KDisclosurePrimary(
   mc_hierarchies = NULL,
   coalition = 1,
   upper_bound = Inf,
+  targeting = default_targeting,
+  print_frames = FALSE,
   ...
 )
 }
@@ -31,8 +33,23 @@ protected. Default value is \code{NULL}.}
 attacking coalition. This parameter corresponds to the parameter k in the
 definition of k-disclosure.}
 
-\item{upper_bound}{numeric value representing minimum count considered safe.
-Default set to \code{Inf}}
+\item{upper_bound}{Numeric value specifying the maximum cell frequency for which
+disclosure of belonging to the cell may be regarded as
+unacceptable. When freq > upper_bound, disclosure of
+belonging to the cell is regarded as acceptable regardless
+of the specification of the \code{sensitive} parameter.
+Default is Inf. Note that this parameter may also be useful
+for reducing computational burden.}
+
+\item{targeting}{NULL, a list, or a function that returns a list specifying
+attribute disclosure scenarios. See Details.
+Default is \link{default_targeting}.}
+
+\item{print_frames}{Logical or character. If TRUE, additional data frames are
+printed to the console. When \code{mc_hierarchies} is used, this includes a data
+frame with hidden results. In addition, a data frame containing the primary
+suppressed difference cells is printed. If set to \code{"primary_cells"}, only the
+primary suppressed difference cells are printed. The default is FALSE.}
 
 \item{...}{parameters passed to children functions}
 }
@@ -43,6 +60,47 @@ dgCMatrix corresponding to primary suppressed cells
 Function for constructing model matrix columns representing primary suppressed
 difference cells
 }
+\details{
+The \code{targeting} specification is a named list that may contain the following
+optional elements. References to \code{crossTable} below refer to a data frame
+that may be extended after applying \code{mc_hierarchies}.
+
+\describe{
+\item{\code{identifying}}{A data frame containing selected rows from
+\code{crossTable}. Membership in the cells represented by these rows is regarded
+as information that an intruder may already know. If omitted, it defaults
+to \code{crossTable}.}
+
+\item{\code{sensitive}}{A data frame containing selected rows from
+\code{crossTable}. If an intruder can infer membership in the cells represented
+by these rows, this is considered an unacceptable disclosure, subject to
+any further specification provided by \code{is_sensitive}. If omitted, it
+defaults to \code{crossTable}.}
+
+\item{\code{is_sensitive}}{A data frame with the same structure as
+\code{sensitive}, but with logical variables. It indicates which codes in
+\code{sensitive} are regarded as sensitive. When specified, disclosure is
+assessed by which codes within a revealed cell are disclosed. If omitted,
+it is equivalent to a data frame where all elements are \code{TRUE}.}
+
+\item{\code{exclude_relations}}{A specification defining identifying–sensitive
+relations that are ignored. This may be given either as a sparse logical
+matrix (or a dummy matrix with values 0/1), or as a list of lists.
+In the matrix form, rows correspond to rows in \code{sensitive} (or \code{crossTable}
+if \code{sensitive} is not specified), and columns correspond to rows in
+\code{identifying} (or \code{crossTable} if \code{identifying} is not specified).
+In the list form, each list element specifies a set of relations by
+selecting rows from \code{identifying} and/or \code{sensitive} defined above. Each
+element may contain the components \code{identifying} and \code{sensitive}; omitted
+components default to all rows of the corresponding element. The full list
+jointly defines the relations to be excluded.}
+
+\item{\code{include_relations}}{As for \code{exclude_relations}, but defining the
+identifying–sensitive relations that are considered. Only the relations
+specified are included; all others are ignored.}
+
+}
+}
 \author{
-Daniel P. Lupp
+Daniel P. Lupp and Øyvind Langsrud
 }
