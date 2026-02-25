@@ -118,8 +118,8 @@ test_that("SuppressKDisclosure", {
                             printInc = printInc, print_frames = print_frames, 
                             output = "all")
   
-  identical(as.vector(table(SSBtools::DummyDuplicated(cbind(o1$xExtraPrimary, o3$xExtraPrimary), rnd = TRUE))),
-            c(24L, 24L))
+  expect_identical(as.vector(table(SSBtools::DummyDuplicated(cbind(o1$xExtraPrimary, o3$xExtraPrimary), rnd = TRUE))),
+                   c(24L, 24L))
   
   
   o4 <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 55, 
@@ -133,8 +133,8 @@ test_that("SuppressKDisclosure", {
                             printInc = printInc, print_frames = print_frames, 
                             output = "all")
   
-  identical(as.vector(table(SSBtools::DummyDuplicated(cbind(o2$xExtraPrimary, o4$xExtraPrimary), rnd = TRUE))),
-            c(23L, 22L))
+  expect_identical(as.vector(table(SSBtools::DummyDuplicated(cbind(o2$xExtraPrimary, o4$xExtraPrimary), rnd = TRUE))),
+                   c(23L, 22L))
   
   
   o5 <- SuppressKDisclosure(d, dimVar = 1:4, freqVar = "freq", coalition = 55, 
@@ -148,8 +148,8 @@ test_that("SuppressKDisclosure", {
                             printInc = printInc, print_frames = print_frames, 
                             output = "all")
   
-  identical(as.vector(table(SSBtools::DummyDuplicated(cbind(o2$xExtraPrimary, o5$xExtraPrimary), rnd = TRUE))),
-            c(23L, 23L))
+  expect_identical(as.vector(table(SSBtools::DummyDuplicated(cbind(o2$xExtraPrimary, o5$xExtraPrimary), rnd = TRUE))),
+                   c(23L, 23L))
   
   
   
@@ -206,7 +206,8 @@ test_that("SuppressKDisclosure", {
                                             main_income = c("special", "ordinary"), 
                                             months = c("m10m12", "Total")), 
                    sensitive = list(region = c("m01m05"), 
-                                    main_income = c("pensions", "assistance")))))    
+                                    main_income = c("pensions", "assistance")))), 
+            upper_bound  = 25)    
   
   # Specify the same relations as above, but in a different way
   # Using multiple list elements                                    
@@ -226,11 +227,12 @@ test_that("SuppressKDisclosure", {
                                       months = "Total"), 
                    sensitive = list(region = c("U", "X"), 
                                     main_income = "pensions", 
-                                    months = "Total")))) 
+                                    months = "Total"))),
+            upper_bound  = 25) 
   
   expect_identical(c(ncol(a5$xExtraPrimary), ncol(a6$xExtraPrimary), 
                      ncol(a8$xExtraPrimary), ncol(a9$xExtraPrimary)),
-                   c(22L, 22L, 25L, 25L))
+                   c(22L, 22L, 22L, 22L))
   
   expect_identical(a5$publish, a6$publish)
   expect_identical(a8$publish, a9$publish)
