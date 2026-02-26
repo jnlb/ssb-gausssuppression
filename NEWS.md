@@ -1,6 +1,6 @@
 
 
-## GaussSuppression 1.2.4
+## GaussSuppression 1.3.0
 * Major update of `SuppressKDisclosure()` and related functions.
   - The description of `SuppressKDisclosure()` is now:
     *Frequency table suppression for targeted attribute disclosure protection.*
